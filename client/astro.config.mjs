@@ -1,0 +1,14 @@
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    react()
+  ],
+  server: {
+    port: 4321,
+    host: true
+  },
+  output: 'hybrid', // mix of static (public pages) + SSR-like for app pages
+});
