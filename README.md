@@ -2,19 +2,6 @@
 
 **FlowHR** adalah sistem HRIS (Human Resource Information System) berbasis web untuk perusahaan skala menengah ke atas. Sistem ini mengotomatisasi seluruh siklus hidup karyawan dari rekrutmen hingga pensiun (Recruit-to-Retire).
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Backend | Java 21 + Spring Boot 3.x |
-| Database | PostgreSQL 16 |
-| Migration | Flyway |
-| Security | Spring Security + JWT |
-| Query | JdbcTemplate (no ORM) |
-| Frontend | Astro.js + React Islands |
-| Reporting | OpenPDF |
-| Infra | Docker Compose |
-
 ## Modules
 
 - **core-hr** — Employee Master Data
@@ -59,7 +46,7 @@ Services:
 **Backend:**
 ```bash
 cd server
-./mvnw spring-boot:run
+.\mvnw.cmd spring-boot:run
 ```
 
 **Frontend:**
