@@ -24,16 +24,16 @@ CREATE TABLE employees (
     photo_url        VARCHAR(500),
 
     -- Kontak
-    phone            VARCHAR(20),
+    phone            VARCHAR(50),
     email_personal   VARCHAR(150),
     address          TEXT,
     city             VARCHAR(100),
     province         VARCHAR(100),
-    postal_code      VARCHAR(10),
+    postal_code      VARCHAR(20),
 
     -- Identitas Legal
-    nik              VARCHAR(16) UNIQUE,   -- KTP
-    npwp             VARCHAR(20) UNIQUE,   -- NPWP
+    nik              VARCHAR(20) UNIQUE,   -- KTP
+    npwp             VARCHAR(50) UNIQUE,   -- NPWP
     bpjs_kes         VARCHAR(30),          -- BPJS Kesehatan
     bpjs_tk          VARCHAR(30),          -- BPJS Ketenagakerjaan
 

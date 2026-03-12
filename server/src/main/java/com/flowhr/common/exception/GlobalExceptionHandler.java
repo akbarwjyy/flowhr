@@ -71,6 +71,6 @@ public class GlobalExceptionHandler {
         log.error("Unhandled exception", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Terjadi kesalahan pada server"));
+                .body(ApiResponse.error("Terjadi kesalahan pada server: " + ex.getMessage()));
     }
 }
