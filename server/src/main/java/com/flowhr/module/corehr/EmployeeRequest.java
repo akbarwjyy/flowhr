@@ -18,9 +18,13 @@ public class EmployeeRequest {
     private String firstName;
 
     private String lastName;
+
     private String gender;
     private LocalDate birthDate;
     private String birthPlace;
+    private String maritalStatus;
+    private String religion;
+    private String nationality;
     private String phone;
     private String emailPersonal;
     private String address;
@@ -29,6 +33,8 @@ public class EmployeeRequest {
     private String postalCode;
     private String nik;
     private String npwp;
+    private String bpjsKes;
+    private String bpjsTk;
 
     @NotNull(message = "Departemen wajib diisi")
     private Long departmentId;
@@ -38,6 +44,8 @@ public class EmployeeRequest {
 
     @NotNull(message = "Tanggal bergabung wajib diisi")
     private LocalDate joinDate;
+
+    private LocalDate endDate;
 
     @NotNull(message = "Gaji pokok wajib diisi")
     @DecimalMin(value = "0.0", inclusive = false, message = "Gaji harus lebih dari 0")
