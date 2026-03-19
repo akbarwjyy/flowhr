@@ -1,0 +1,250 @@
+---
+// app/dashboard.astro — Executive Dashboard
+import AppLayout from "../../layouts/AppLayout.astro";
+---
+
+<AppLayout title="Dashboard" activeMenu="dashboard">
+    <div id="dashboard">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card loading">
+                <div
+                    class="stat-icon"
+                    style="background: linear-gradient(135deg, var(--primary), #7C3AED);"
+                >
+                    <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#ffffff"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+                        ></path><circle cx="9" cy="7" r="4"></circle><path
+                            d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path
+                            d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg
+                    >
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalActive">—</div>
+                    <div class="stat-label">Karyawan Aktif</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div
+                    class="stat-icon"
+                    style="background: linear-gradient(135deg, #06B6D4, #0891B2);"
+                >
+                    <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#ffffff"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><circle cx="12" cy="12" r="10"></circle><circle
+                            cx="12"
+                            cy="12"
+                            r="6"></circle><circle cx="12" cy="12" r="2"
+                        ></circle></svg
+                    >
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalProbation">—</div>
+                    <div class="stat-label">Masa Percobaan</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div
+                    class="stat-icon"
+                    style="background: linear-gradient(135deg, #10B981, #059669);"
+                >
+                    <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#ffffff"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                        ></path><circle cx="12" cy="7" r="4"></circle></svg
+                    >
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="maleCount">—</div>
+                    <div class="stat-label">Karyawan Laki-laki</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div
+                    class="stat-icon"
+                    style="background: linear-gradient(135deg, #F59E0B, #D97706);"
+                >
+                    <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#ffffff"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                        ></path><circle cx="12" cy="7" r="4"></circle></svg
+                    >
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="femaleCount">—</div>
+                    <div class="stat-label">Karyawan Perempuan</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="departments-section">
+            <h2>Headcount per Departemen</h2>
+            <div id="deptTable" class="table-wrapper">
+                <div style="color: #94A3B8; padding: 20px;">Memuat data...</div>
+            </div>
+        </div>
+    </div>
+</AppLayout>
+
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 0px;
+        padding: 20px;
+    }
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 0px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #f1f5f9;
+    }
+    .stat-label {
+        font-size: 13px;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+    h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+    .table-wrapper {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 0px;
+        overflow: hidden;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border);
+    }
+    td {
+        padding: 12px 16px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--surface);
+    }
+    tr:last-child td {
+        border-bottom: none;
+    }
+    tr:hover td {
+        background: var(--border);
+    }
+</style>
+
+<script>
+    const API =
+        (import.meta as any).env?.PUBLIC_API_URL ||
+        "http://localhost:8080/api/v1";
+    const token = localStorage.getItem("flowhr_token");
+
+    async function loadDashboard() {
+        try {
+            const res = await fetch(`${API}/analytics/dashboard`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById("totalActive")!.textContent =
+                    data.data.active_count || "0";
+                document.getElementById("totalProbation")!.textContent =
+                    data.data.probation_count || "0";
+                document.getElementById("maleCount")!.textContent =
+                    data.data.male_count || "0";
+                document.getElementById("femaleCount")!.textContent =
+                    data.data.female_count || "0";
+            }
+        } catch (e) {
+            console.error("Dashboard error:", e);
+        }
+    }
+
+    async function loadDepts() {
+        try {
+            const res = await fetch(
+                `${API}/analytics/headcount/by-department`,
+                { headers: { Authorization: `Bearer ${token}` } },
+            );
+            const data = await res.json();
+            if (data.success) {
+                const rows = data.data
+                    .map(
+                        (d: any) => `
+          <tr>
+            <td>${d.department}</td>
+            <td style="color:#F1F5F9; font-weight:600;">${d.employee_count}</td>
+            <td>${d.male_count}</td>
+            <td>${d.female_count}</td>
+          </tr>`,
+                    )
+                    .join("");
+                document.getElementById("deptTable")!.innerHTML = `
+          <table>
+            <thead><tr><th>Departemen</th><th>Total</th><th>Laki-laki</th><th>Perempuan</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+            }
+        } catch (e) {
+            console.error("Dept error:", e);
+        }
+    }
+
+    loadDashboard();
+    loadDepts();
+</script>
