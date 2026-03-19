@@ -1,0 +1,462 @@
+---
+// careers/index.astro — Halaman publik karir (static render oleh Astro, tanpa React)
+import "../../styles/global.css";
+
+const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080/api/v1";
+---
+
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Karir | FlowHR</title>
+        <meta
+            name="description"
+            content="Bergabunglah dengan tim kami. Lihat lowongan pekerjaan terbaru."
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            body {
+                background-image:
+                    linear-gradient(var(--grid) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+                background-size: 80px 80px;
+                position: relative;
+                overflow-x: hidden;
+            }
+
+            header {
+                padding: 24px 48px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                border-bottom: 1px solid var(--grid);
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 24px;
+                font-weight: 800;
+                letter-spacing: -0.5px;
+                color: var(--text-main);
+            }
+
+            /* Abstract geometric logo like the GROW one */
+            .logo-icon {
+                display: flex;
+                align-items: flex-end;
+                gap: 2px;
+                height: 24px;
+            }
+            .logo-icon div {
+                width: 6px;
+                background: white;
+            }
+            .logo-icon div:nth-child(1) {
+                height: 12px;
+                background: var(--pink);
+            }
+            .logo-icon div:nth-child(2) {
+                height: 18px;
+                background: var(--cyan);
+            }
+            .logo-icon div:nth-child(3) {
+                height: 24px;
+                background: white;
+            }
+
+            .nav-links {
+                display: none;
+            }
+            @media (min-width: 768px) {
+                .nav-links {
+                    display: flex;
+                    gap: 32px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: var(--text-muted);
+                }
+                .nav-links a {
+                    color: inherit;
+                    text-decoration: none;
+                    transition: color 0.2s;
+                }
+                .nav-links a:hover {
+                    color: var(--text-main);
+                }
+            }
+
+            .hero {
+                text-align: center;
+                padding: 100px 24px 80px;
+                position: relative;
+                max-width: 1000px;
+                margin: 0 auto;
+            }
+
+            /* The purple pill banner */
+            .promo-banner {
+                display: inline-flex;
+                align-items: center;
+                gap: 12px;
+                background: var(--purple);
+                color: white;
+                padding: 6px 12px 6px 20px;
+                border-radius: 100px;
+                font-size: 13px;
+                font-weight: 600;
+                margin-bottom: 40px;
+            }
+            .promo-banner span {
+                background: #000;
+                color: white;
+                padding: 4px 10px;
+                border-radius: 100px;
+                font-size: 11px;
+            }
+
+            .hero h1 {
+                font-size: 64px;
+                font-weight: 800;
+                letter-spacing: -2px;
+                line-height: 1.1;
+                margin-bottom: 24px;
+            }
+
+            .hero p {
+                color: var(--text-muted);
+                font-size: 18px;
+                max-width: 800px;
+                margin: 0 auto 40px;
+                line-height: 1.6;
+            }
+
+            .hero-actions {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 16px;
+            }
+
+            .jobs-section {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 48px 100px;
+                text-align: center;
+            }
+
+            .jobs-section h2 {
+                font-size: 32px;
+                font-weight: 800;
+                margin-bottom: 48px;
+                letter-spacing: -1px;
+            }
+
+            #jobList {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 24px;
+                text-align: left;
+            }
+
+            .job-card {
+                background: var(--dark);
+                border: 1px solid var(--border);
+                border-radius: 0px; /* Sharp corners mimicking the image */
+                padding: 32px;
+                transition:
+                    transform 0.2s,
+                    border-color 0.2s;
+                position: relative;
+            }
+            .job-card:hover {
+                border-color: var(--lime);
+                transform: translateY(-4px);
+            }
+
+            .job-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+
+            .job-title {
+                font-size: 20px;
+                font-weight: 800;
+                color: var(--text-main);
+                margin-bottom: 12px;
+            }
+
+            .job-desc {
+                font-size: 14px;
+                color: var(--text-muted);
+                line-height: 1.6;
+                margin-bottom: 24px;
+            }
+
+            .job-meta {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-bottom: 24px;
+            }
+            .badge {
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--text-muted);
+            }
+
+            .loading {
+                color: var(--text-muted);
+                padding: 40px;
+                text-align: center;
+                grid-column: 1 / -1;
+            }
+
+            dialog {
+                background: var(--dark);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 32px;
+                max-width: 500px;
+                width: 100%;
+                color: var(--text-main);
+            }
+            dialog::backdrop {
+                background: rgba(0, 0, 0, 0.8);
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <div></div><div></div><div></div>
+                </div>
+                FLOW
+            </div>
+
+            <div class="nav-links">
+                <a href="#">Home</a>
+                <a href="#jobs">Lowongan</a>
+                <a href="#">Tentang Kami</a>
+                <a href="#">Kontak</a>
+            </div>
+
+            <a href="/login" class="btn-primary">Login App</a>
+        </header>
+
+        <section class="hero">
+            <!-- Floating Elements -->
+            <div class="float-shape shape-1">$</div>
+            <div class="float-shape shape-2"></div>
+            <div class="float-shape shape-3"></div>
+            <div class="float-shape shape-4">5</div>
+
+            <div class="promo-banner">
+                Lihat lowongan yang tersedia! <span>Lihat Sekarang &rarr;</span>
+            </div>
+
+            <h1>Bergabung dengan <br />Tim Kami</h1>
+            <p>
+                Kami mencari talenta terbaik. Temukan posisi yang tepat untukmu
+                dan bantu kami memberikan pengalaman terbaik, mempersingkat
+                siklus kerja, dan memperkuat fondasi perusahaan bersama-sama.
+            </p>
+
+            <div class="hero-actions">
+                <a href="#jobs" class="btn-primary">Lihat Lowongan</a>
+                <a href="/login" class="btn-outline">Karyawan Internal</a>
+            </div>
+        </section>
+
+        <section class="jobs-section" id="jobs">
+            <h2>Lowongan Tersedia</h2>
+            <div id="jobList">
+                <div class="loading">Memuat lowongan...</div>
+            </div>
+        </section>
+
+        <dialog id="applyDialog">
+            <h3
+                style="margin-bottom:24px; font-size:24px; font-weight:800; letter-spacing:-0.5px;"
+            >
+                Lamar Pekerjaan
+            </h3>
+            <form id="applyForm">
+                <input type="hidden" id="applyJobId" />
+
+                <label>Nama Depan</label>
+                <input id="applyFirstName" type="text" required />
+
+                <label>Nama Belakang</label>
+                <input id="applyLastName" type="text" />
+
+                <label>Email</label>
+                <input id="applyEmail" type="email" required />
+
+                <label>Nomor HP</label>
+                <input id="applyPhone" type="tel" />
+
+                <label>Link CV / Portfolio</label>
+                <input id="applyCvUrl" type="url" placeholder="https://..." />
+
+                <label>Sumber Info</label>
+                <input
+                    id="applySource"
+                    type="text"
+                    placeholder="LinkedIn, Referral..."
+                />
+
+                <div style="display:flex; gap:12px; margin-top:16px;">
+                    <button type="submit" class="btn-primary" style="flex:1;"
+                        >Kirim Lamaran</button
+                    >
+                    <button
+                        type="button"
+                        class="btn-outline"
+                        onclick="document.getElementById('applyDialog').close()"
+                        >Batal</button
+                    >
+                </div>
+                <div
+                    id="applyMsg"
+                    style="margin-top:16px; font-size:13px; display:none;"
+                >
+                </div>
+            </form>
+        </dialog>
+
+        <script define:vars={{ apiUrl: API }}>
+            const colors = [
+                {
+                    bg: "#06b6d4",
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+                },
+                {
+                    bg: "#ec4899",
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+                },
+                {
+                    bg: "#d4ff00",
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+                },
+                {
+                    bg: "#8b5cf6",
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
+                },
+            ];
+
+            async function loadJobs() {
+                try {
+                    const res = await fetch(`${apiUrl}/careers/jobs`);
+                    const data = await res.json();
+                    const list = document.getElementById("jobList");
+                    if (!data.success || !data.data.length) {
+                        list.innerHTML =
+                            '<div class="loading">Belum ada lowongan tersedia saat ini.</div>';
+                        return;
+                    }
+                    list.innerHTML = data.data
+                        .map((job, index) => {
+                            const c = colors[index % colors.length];
+                            return `
+                                <div class="job-card">
+                                    <div class="job-icon" style="background: ${c.bg}; color: ${c.bg === "#d4ff00" ? "#000" : "#fff"}">
+                                        ${c.icon}
+                                    </div>
+                                    <div class="job-title">${job.title}</div>
+                                    <div class="job-desc">
+                                        Menjadi bagian dari tim ${job.department_name || "Umum"} untuk mendukung operasional kami.
+                                    </div>
+                                    <div class="job-meta">
+                                        <span class="badge">▪ ${job.employment_type?.replace("_", " ") || "Full Time"}</span>
+                                        ${job.location ? `<span class="badge">▪ ${job.location}</span>` : ""}
+                                    </div>
+                                    <button class="btn-outline" style="width: 100%; border-color: #333;" onclick="openApply(${job.id}, '${job.title}')">Lamar Sekarang</button>
+                                </div>
+                            `;
+                        })
+                        .join("");
+                } catch {}
+            }
+
+            function openApply(jobId, title) {
+                document.getElementById("applyJobId").value = jobId;
+                document.querySelector("#applyDialog h3").textContent = title;
+                document.getElementById("applyMsg").style.display = "none";
+                document.getElementById("applyDialog").showModal();
+            }
+
+            document
+                .getElementById("applyForm")
+                .addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const jobId = document.getElementById("applyJobId").value;
+                    const msg = document.getElementById("applyMsg");
+                    const btn = e.target.querySelector('button[type="submit"]');
+
+                    btn.textContent = "Mengirim...";
+                    btn.disabled = true;
+
+                    try {
+                        const res = await fetch(
+                            `${apiUrl}/careers/jobs/${jobId}/apply`,
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    firstName:
+                                        document.getElementById(
+                                            "applyFirstName",
+                                        ).value,
+                                    lastName:
+                                        document.getElementById("applyLastName")
+                                            .value,
+                                    email: document.getElementById("applyEmail")
+                                        .value,
+                                    phone: document.getElementById("applyPhone")
+                                        .value,
+                                    cvUrl: document.getElementById("applyCvUrl")
+                                        .value,
+                                    source: document.getElementById(
+                                        "applySource",
+                                    ).value,
+                                }),
+                            },
+                        );
+                        const data = await res.json();
+                        if (!data.success) throw new Error(data.message);
+                        msg.style.display = "block";
+                        msg.style.color = "var(--lime)";
+                        msg.innerHTML =
+                            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:text-bottom;margin-right:4px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Lamaran berhasil dikirim! Kami akan menghubungi Anda segera.';
+                        e.target.reset();
+                    } catch (err) {
+                        msg.style.display = "block";
+                        msg.style.color = "var(--pink)";
+                        msg.innerHTML =
+                            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:text-bottom;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> ' +
+                            (err.message || "Gagal mengirim lamaran");
+                    } finally {
+                        btn.textContent = "Kirim Lamaran";
+                        btn.disabled = false;
+                    }
+                });
+
+            loadJobs();
+        </script>
+    </body>
+</html>

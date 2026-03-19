@@ -1,0 +1,1109 @@
+---
+import AppLayout from "../../../layouts/AppLayout.astro";
+---
+
+<AppLayout title="Data Karyawan" activeMenu="employees">
+    <div id="employeesPage">
+        <div class="page-header">
+            <div>
+                <h1>Data Karyawan</h1>
+                <p>Kelola data karyawan perusahaan</p>
+            </div>
+            <button
+                id="addBtn"
+                class="btn-primary"
+                style="display: flex; align-items: center; gap: 8px;"
+            >
+                <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><line x1="12" y1="5" x2="12" y2="19"></line><line
+                        x1="5"
+                        y1="12"
+                        x2="19"
+                        y2="12"></line></svg
+                >
+                Tambah Karyawan
+            </button>
+        </div>
+
+        <div class="card p-0 mt-4">
+            <div
+                style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;"
+            >
+                <div style="display: flex; gap: 12px; width: 300px;">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Cari nama karyawan..."
+                        class="form-control"
+                        style="width: 100%; border-radius: 4px;"
+                    />
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <span style="color: #94A3B8; font-size: 14px;"
+                        >Total: <span
+                            id="totalCount"
+                            style="color: #f1f5f9; font-weight: 600;">0</span
+                        ></span
+                    >
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="employeesTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">NIP</th>
+                            <th style="min-width: 250px;">Karyawan</th>
+                            <th style="width: 180px;">Identitas (ID)</th>
+                            <th style="min-width: 200px;">Pekerjaan</th>
+                            <th style="min-width: 180px;">Kontak & Lokasi</th>
+                            <th style="width: 120px;">Bergabung</th>
+                            <th style="width: 150px;">Gaji Pokok</th>
+                            <th style="width: 120px;">Status</th>
+                            <th style="width: 100px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td
+                                colspan="10"
+                                style="text-align: center; color: #94A3B8; padding: 32px;"
+                                >Memuat data...</td
+                            >
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Add Employee Modal -->
+        <div
+            id="addEmployeeModal"
+            class="modal-backdrop"
+            style="display: none;"
+        >
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2
+                        style="font-size: 18px; font-weight: 600;"
+                        id="modalTitle"
+                    >
+                        Tambah Karyawan Baru
+                    </h2>
+                    <button class="close-btn" id="closeModalBtn">&times;</button
+                    >
+                </div>
+                <div class="modal-body">
+                    <form
+                        id="addEmployeeForm"
+                        style="display: flex; flex-direction: column; gap: 16px;"
+                    >
+                        <input type="hidden" id="formEmployeeId" name="id" />
+                        <div
+                            id="formAlert"
+                            style="display: none; padding: 12px; border-radius: 4px; font-size: 14px;"
+                        >
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empNip"
+                                    >NIP *</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empNip"
+                                    name="nip"
+                                    class="form-control"
+                                    required
+                                    placeholder="Contoh: EMP001"
+                                />
+                            </div>
+                            <div>
+                                <label class="form-label" for="empEmail"
+                                    >Email Personal *</label
+                                >
+                                <input
+                                    type="email"
+                                    id="empEmail"
+                                    name="emailPersonal"
+                                    class="form-control"
+                                    required
+                                    placeholder="contoh@email.com"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empFirst"
+                                    >Nama Depan *</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empFirst"
+                                    name="firstName"
+                                    class="form-control"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label class="form-label" for="empLast"
+                                    >Nama Belakang</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empLast"
+                                    name="lastName"
+                                    class="form-control"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empDept"
+                                    >Departemen *</label
+                                >
+                                <select
+                                    id="empDept"
+                                    name="departmentId"
+                                    class="form-control"
+                                    required
+                                >
+                                    <option value=""
+                                        >-- Pilih Departemen --</option
+                                    >
+                                    <option value="1">Human Resources</option>
+                                    <option value="2"
+                                        >Information Technology</option
+                                    >
+                                    <option value="3">Finance</option>
+                                    <option value="4">Operations</option>
+                                    <option value="5">Marketing</option>
+                                    <option value="6">General Affairs</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label" for="empPos"
+                                    >Posisi *</label
+                                >
+                                <select
+                                    id="empPos"
+                                    name="positionId"
+                                    class="form-control"
+                                    required
+                                >
+                                    <option value="">-- Pilih Posisi --</option>
+                                    <option value="1">HR Manager (HR)</option>
+                                    <option value="2">HR Staff (HR)</option>
+                                    <option value="3">IT Manager (IT)</option>
+                                    <option value="4"
+                                        >Backend Engineer (IT)</option
+                                    >
+                                    <option value="5"
+                                        >Frontend Engineer (IT)</option
+                                    >
+                                    <option value="6"
+                                        >Finance Manager (Fin)</option
+                                    >
+                                    <option value="7">Accountant (Fin)</option>
+                                    <option value="8"
+                                        >Operations Manager (Ops)</option
+                                    >
+                                    <option value="9">GA Staff (GA)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empNik"
+                                    >NIK (KTP)</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empNik"
+                                    name="nik"
+                                    class="form-control"
+                                    maxlength="16"
+                                    placeholder="16 digit NIK"
+                                />
+                            </div>
+                            <div>
+                                <label class="form-label" for="empNpwp"
+                                    >NPWP</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empNpwp"
+                                    name="npwp"
+                                    class="form-control"
+                                    placeholder="Nomor NPWP"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empGender"
+                                    >Jenis Kelamin</label
+                                >
+                                <select
+                                    id="empGender"
+                                    name="gender"
+                                    class="form-control"
+                                >
+                                    <option value="">-- Pilih --</option>
+                                    <option value="MALE">Laki-laki</option>
+                                    <option value="FEMALE">Perempuan</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label" for="empPhone"
+                                    >No. Telepon</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empPhone"
+                                    name="phone"
+                                    class="form-control"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empMarital"
+                                    >Status Pernikahan</label
+                                >
+                                <select
+                                    id="empMarital"
+                                    name="maritalStatus"
+                                    class="form-control"
+                                >
+                                    <option value="SINGLE"
+                                        >Lajang (Single)</option
+                                    >
+                                    <option value="MARRIED">Menikah</option>
+                                    <option value="DIVORCED">Cerai Hidup</option
+                                    >
+                                    <option value="WIDOWED">Cerai Mati</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label" for="empReligion"
+                                    >Agama</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empReligion"
+                                    name="religion"
+                                    class="form-control"
+                                    placeholder="Islam, Kristen, dll"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empNationality"
+                                    >Kewarganegaraan</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empNationality"
+                                    name="nationality"
+                                    class="form-control"
+                                    value="Indonesia"
+                                />
+                            </div>
+                            <div>
+                                <label class="form-label" for="empBpjsKes"
+                                    >BPJS Kesehatan</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empBpjsKes"
+                                    name="bpjsKes"
+                                    class="form-control"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empBpjsTk"
+                                    >BPJS Ketenagakerjaan</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empBpjsTk"
+                                    name="bpjsTk"
+                                    class="form-control"
+                                />
+                            </div>
+                            <div></div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empBirthPlace"
+                                    >Tempat Lahir</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empBirthPlace"
+                                    name="birthPlace"
+                                    class="form-control"
+                                />
+                            </div>
+                            <div>
+                                <label class="form-label" for="empBirthDate"
+                                    >Tanggal Lahir</label
+                                >
+                                <input
+                                    type="date"
+                                    id="empBirthDate"
+                                    name="birthDate"
+                                    class="form-control"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empAddress"
+                                    >Alamat</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empAddress"
+                                    name="address"
+                                    class="form-control"
+                                    placeholder="Jl. Raya No..."
+                                />
+                            </div>
+                            <div>
+                                <label class="form-label" for="empCity"
+                                    >Kota</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empCity"
+                                    name="city"
+                                    class="form-control"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empProvince"
+                                    >Provinsi</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empProvince"
+                                    name="province"
+                                    class="form-control"
+                                />
+                            </div>
+                            <div>
+                                <label class="form-label" for="empPostal"
+                                    >Kode Pos</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empPostal"
+                                    name="postalCode"
+                                    class="form-control"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empStatus"
+                                    >Status Pekerjaan *</label
+                                >
+                                <select
+                                    id="empStatus"
+                                    name="employmentStatus"
+                                    class="form-control"
+                                    required
+                                >
+                                    <option value="PROBATION">Probation</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="TERMINATED"
+                                        >Terminated</option
+                                    >
+                                    <option value="RETIRED">Retired</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label" for="empJoinDate"
+                                    >Tanggal Bergabung *</label
+                                >
+                                <input
+                                    type="date"
+                                    id="empJoinDate"
+                                    name="joinDate"
+                                    class="form-control"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empEndDate"
+                                    >Tanggal Resign/Berakhir</label
+                                >
+                                <input
+                                    type="date"
+                                    id="empEndDate"
+                                    name="endDate"
+                                    class="form-control"
+                                />
+                            </div>
+                            <div></div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        >
+                            <div>
+                                <label class="form-label" for="empSalary"
+                                    >Gaji Pokok *</label
+                                >
+                                <input
+                                    type="number"
+                                    id="empSalary"
+                                    name="baseSalary"
+                                    class="form-control"
+                                    step="0.01"
+                                    min="1"
+                                    required
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div>
+                                <label class="form-label" for="empPhoto"
+                                    >URL Foto</label
+                                >
+                                <input
+                                    type="text"
+                                    id="empPhoto"
+                                    name="photoUrl"
+                                    class="form-control"
+                                    placeholder="https://..."
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px;"
+                        >
+                            <button
+                                type="button"
+                                class="btn-outline"
+                                id="cancelBtn">Batal</button
+                            >
+                            <button
+                                type="submit"
+                                class="btn-primary"
+                                id="submitBtn">Simpan</button
+                            >
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</AppLayout>
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .page-header p {
+        color: #94a3b8;
+        font-size: 14px;
+    }
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1300px; /* Ensure horizontal scroll on smaller screens */
+    }
+    th {
+        padding: 16px 20px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 600;
+        color: #94a3b8;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+    }
+    td {
+        padding: 16px 20px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--surface);
+        vertical-align: middle;
+    }
+    tr:last-child td {
+        border-bottom: none;
+    }
+    tr:hover td {
+        background: var(--border);
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .badge-active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .badge-probation {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    .badge-inactive {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .action-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: #e2e8f0;
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--primary);
+        border-color: #475569;
+    }
+
+    /* Modal Styles */
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .modal-content {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        width: 100%;
+        max-width: 700px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-body {
+        padding: 20px;
+    }
+    .close-btn {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        font-size: 24px;
+        cursor: pointer;
+        line-height: 1;
+    }
+    .close-btn:hover {
+        color: #fff;
+    }
+</style>
+
+<script>
+    const API =
+        (import.meta as any).env?.PUBLIC_API_URL ||
+        "http://localhost:8080/api/v1";
+    let allEmployees: any[] = [];
+
+    async function loadEmployees() {
+        // Need to parse user from local storage to check for proper roles but mostly token is enough
+        const user = JSON.parse(localStorage.getItem("flowhr_user") || "{}");
+        const token = localStorage.getItem("flowhr_token");
+        const tbody = document.getElementById("tableBody")!;
+
+        try {
+            const res = await fetch(`${API}/employees`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const data = await res.json();
+
+            if (data.success && data.data) {
+                // Backend returns paginated structure: data.data.employees
+                allEmployees = data.data.employees || [];
+                document.getElementById("totalCount")!.textContent = (
+                    data.data.total || allEmployees.length
+                ).toString();
+                renderTable(allEmployees);
+            } else {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--pink); padding: 32px;">Gagal memuat data: ${data.message || "Unknown error"}</td></tr>`;
+            }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--pink); padding: 32px;">Error koneksi server</td></tr>`;
+            console.error(e);
+        }
+    }
+
+    function renderTable(employees: any[]) {
+        const tbody = document.getElementById("tableBody")!;
+
+        if (employees.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #94A3B8; padding: 32px;">Belum ada data</td></tr>`;
+            return;
+        }
+
+        const getStatusBadge = (status: string) => {
+            if (!status)
+                return `<span class="status-badge badge-active">Active</span>`;
+            if (status.toUpperCase() === "ACTIVE")
+                return `<span class="status-badge badge-active">Active</span>`;
+            if (status.toUpperCase() === "PROBATION")
+                return `<span class="status-badge badge-probation">Probation</span>`;
+            return `<span class="status-badge badge-inactive">${status}</span>`;
+        };
+
+        const rows = employees
+            .map((emp) => {
+                const formatIDR = (val: any) => {
+                    if (val === null || val === undefined) return "-";
+                    return new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                        minimumFractionDigits: 0,
+                    }).format(val);
+                };
+
+                return `
+            <tr>
+                <td style="font-family: monospace; color: #94A3B8;">${emp.nip || "-"}</td>
+                <td style="font-weight: 500;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #CBD5E1; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+                            ${emp.photoUrl ? `<img src="${emp.photoUrl}" style="width: 100%; height:100%; object-fit: cover;" />` : emp.firstName ? emp.firstName.charAt(0).toUpperCase() : "?"}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">${emp.firstName} ${emp.lastName || ""}</div>
+                            <div style="font-size: 11px; color: #94A3B8;">${emp.gender === "MALE" ? "Laki-laki" : emp.gender === "FEMALE" ? "Perempuan" : "-"}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-size: 13px; color: #E2E8F0;">NIK: ${emp.nik || "-"}</div>
+                    <div style="font-size: 11px; color: #94A3B8;">NPWP: ${emp.npwp || "-"}</div>
+                </td>
+                <td>
+                    <div style="font-size: 13px; font-weight: 500; color: #E2E8F0;">${emp.positionTitle || "-"}</div>
+                    <div style="font-size: 11px; color: #94A3B8;">${emp.departmentName || "-"}</div>
+                </td>
+                <td>
+                    <div style="font-size: 13px; color: #E2E8F0;">${emp.emailPersonal || "-"}</div>
+                    <div style="font-size: 11px; color: #94A3B8;">${emp.phone || ""}</div>
+                    ${emp.city ? `<div style="font-size: 10px; color: #64748B; margin-top: 2px;">${emp.city}${emp.address ? ", " + emp.address : ""}</div>` : ""}
+                </td>
+                <td style="color: #CBD5E1; font-size: 13px;">${emp.joinDate || "-"}</td>
+                <td style="font-weight: 600; color: #F1F5F9; font-size: 13px;">${formatIDR(emp.baseSalary)}</td>
+                <td>${getStatusBadge(emp.employmentStatus)}</td>
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="action-btn" title="Edit" onclick="editEmp('${emp.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="action-btn" title="Hapus" onclick="deleteEmp('${emp.id}')" style="color: var(--pink); border-color: rgba(236, 72, 153, 0.2);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+            })
+            .join("");
+
+        tbody.innerHTML = rows;
+    }
+
+    document.getElementById("searchInput")?.addEventListener("input", (e) => {
+        const query = (e.target as HTMLInputElement).value.toLowerCase();
+        const filtered = allEmployees.filter((emp) => {
+            const fullName =
+                `${emp.firstName || ""} ${emp.lastName || ""}`.toLowerCase();
+            const email = (emp.emailPersonal || "").toLowerCase();
+            const nip = (emp.nip || "").toLowerCase();
+            const phone = (emp.phone || "").toLowerCase();
+            return (
+                fullName.includes(query) ||
+                email.includes(query) ||
+                nip.includes(query) ||
+                phone.includes(query)
+            );
+        });
+        renderTable(filtered);
+    });
+
+    const modal = document.getElementById("addEmployeeModal")!;
+    const formMsg = document.getElementById("formAlert")!;
+
+    // Open Modal
+    document.getElementById("addBtn")?.addEventListener("click", () => {
+        modal.style.display = "flex";
+        formMsg.style.display = "none";
+        document.getElementById("modalTitle")!.textContent =
+            "Tambah Karyawan Baru";
+        (document.getElementById("formEmployeeId") as HTMLInputElement).value =
+            "";
+        (document.getElementById("addEmployeeForm") as HTMLFormElement).reset();
+    });
+
+    // Close Modal
+    const closeModal = () => {
+        modal.style.display = "none";
+    };
+    document
+        .getElementById("closeModalBtn")
+        ?.addEventListener("click", closeModal);
+    document.getElementById("cancelBtn")?.addEventListener("click", closeModal);
+
+    // Form Submit
+    document
+        .getElementById("addEmployeeForm")
+        ?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const form = e.target as HTMLFormElement;
+            const submitBtn = document.getElementById(
+                "submitBtn",
+            ) as HTMLButtonElement;
+            const token = localStorage.getItem("flowhr_token");
+            const employeeId = (
+                document.getElementById("formEmployeeId") as HTMLInputElement
+            )?.value;
+
+            // Collect Form Data
+            const payload: any = {
+                nip: (form.elements.namedItem("nip") as HTMLInputElement).value,
+                emailPersonal: (
+                    form.elements.namedItem("emailPersonal") as HTMLInputElement
+                ).value,
+                firstName: (
+                    form.elements.namedItem("firstName") as HTMLInputElement
+                ).value,
+                lastName: (
+                    form.elements.namedItem("lastName") as HTMLInputElement
+                ).value,
+                departmentId: parseInt(
+                    (
+                        form.elements.namedItem(
+                            "departmentId",
+                        ) as HTMLSelectElement
+                    ).value,
+                ),
+                positionId: parseInt(
+                    (form.elements.namedItem("positionId") as HTMLSelectElement)
+                        .value,
+                ),
+                joinDate: (
+                    form.elements.namedItem("joinDate") as HTMLInputElement
+                ).value,
+                baseSalary: parseFloat(
+                    (form.elements.namedItem("baseSalary") as HTMLInputElement)
+                        .value,
+                ),
+                employmentStatus: (
+                    form.elements.namedItem(
+                        "employmentStatus",
+                    ) as HTMLSelectElement
+                ).value,
+                nik:
+                    (form.elements.namedItem("nik") as HTMLInputElement)
+                        .value || null,
+                npwp:
+                    (form.elements.namedItem("npwp") as HTMLInputElement)
+                        .value || null,
+                gender:
+                    (form.elements.namedItem("gender") as HTMLSelectElement)
+                        .value || null,
+                phone:
+                    (form.elements.namedItem("phone") as HTMLInputElement)
+                        .value || null,
+                birthPlace:
+                    (form.elements.namedItem("birthPlace") as HTMLInputElement)
+                        .value || null,
+                birthDate:
+                    (form.elements.namedItem("birthDate") as HTMLInputElement)
+                        .value || null,
+                address:
+                    (form.elements.namedItem("address") as HTMLInputElement)
+                        .value || null,
+                city:
+                    (form.elements.namedItem("city") as HTMLInputElement)
+                        .value || null,
+                province:
+                    (form.elements.namedItem("province") as HTMLInputElement)
+                        .value || null,
+                postalCode:
+                    (form.elements.namedItem("postalCode") as HTMLInputElement)
+                        .value || null,
+                maritalStatus:
+                    (
+                        form.elements.namedItem(
+                            "maritalStatus",
+                        ) as HTMLSelectElement
+                    ).value || "SINGLE",
+                religion:
+                    (form.elements.namedItem("religion") as HTMLInputElement)
+                        .value || null,
+                nationality:
+                    (form.elements.namedItem("nationality") as HTMLInputElement)
+                        .value || "Indonesia",
+                bpjsKes:
+                    (form.elements.namedItem("bpjsKes") as HTMLInputElement)
+                        .value || null,
+                bpjsTk:
+                    (form.elements.namedItem("bpjsTk") as HTMLInputElement)
+                        .value || null,
+                endDate:
+                    (form.elements.namedItem("endDate") as HTMLInputElement)
+                        .value || null,
+                photoUrl:
+                    (form.elements.namedItem("photoUrl") as HTMLInputElement)
+                        .value || null,
+            };
+
+            try {
+                submitBtn.textContent = "Menyimpan...";
+                submitBtn.disabled = true;
+
+                const url = employeeId
+                    ? `${API}/employees/${employeeId}`
+                    : `${API}/employees`;
+                const method = employeeId ? "PUT" : "POST";
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    formMsg.style.display = "block";
+                    formMsg.style.background = "rgba(16, 185, 129, 0.1)";
+                    formMsg.style.color = "#6EE7B7";
+                    formMsg.textContent = employeeId
+                        ? "Data karyawan berhasil diperbarui!"
+                        : "Karyawan baru berhasil ditambahkan!";
+
+                    submitBtn.style.display = "none";
+                    document.getElementById("cancelBtn")!.textContent = "Tutup";
+
+                    setTimeout(() => {
+                        closeModal();
+                        loadEmployees();
+                        // Reset buttons for next open
+                        submitBtn.style.display = "block";
+                        document.getElementById("cancelBtn")!.textContent =
+                            "Batal";
+                    }, 1500);
+                } else {
+                    formMsg.style.display = "block";
+                    formMsg.style.background = "rgba(239,68,68,0.1)";
+                    formMsg.style.color = "#FCA5A5";
+                    formMsg.textContent =
+                        data.message || "Gagal menyimpan data";
+                }
+            } catch (err: any) {
+                formMsg.style.display = "block";
+                formMsg.style.background = "rgba(239,68,68,0.1)";
+                formMsg.style.color = "#FCA5A5";
+                formMsg.textContent = "Error: " + err.message;
+            } finally {
+                submitBtn.textContent = "Simpan";
+                submitBtn.disabled = false;
+            }
+        });
+
+    (window as any).editEmp = async function (id: string) {
+        const token = localStorage.getItem("flowhr_token");
+        const form = document.getElementById(
+            "addEmployeeForm",
+        ) as HTMLFormElement;
+
+        // 1. Reset and Show modal immediately
+        modal.style.display = "flex";
+        formMsg.style.display = "none";
+        document.getElementById("modalTitle")!.textContent =
+            "Edit Data Karyawan";
+        form.reset();
+        (document.getElementById("formEmployeeId") as HTMLInputElement).value =
+            id;
+
+        // 2. Pre-fill from local memory for instant feedback
+        const localEmp = allEmployees.find(
+            (e) => e.id.toString() === id.toString(),
+        );
+        if (localEmp) {
+            fillEmployeeForm(localEmp);
+        }
+
+        // 3. Fetch latest data from server just in case
+        try {
+            const res = await fetch(`${API}/employees/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const data = await res.json();
+            if (data.success && data.data) {
+                fillEmployeeForm(data.data);
+            }
+        } catch (e) {
+            console.error("Error loading employee details", e);
+        }
+    };
+
+    function fillEmployeeForm(emp: any) {
+        const form = document.getElementById(
+            "addEmployeeForm",
+        ) as HTMLFormElement;
+
+        // Fill fields safely
+        const setVal = (name: string, val: any) => {
+            const el = form.elements.namedItem(name);
+            if (el) (el as any).value = val || "";
+        };
+
+        setVal("nip", emp.nip);
+        setVal("firstName", emp.firstName);
+        setVal("lastName", emp.lastName);
+        setVal("emailPersonal", emp.emailPersonal);
+        setVal("departmentId", emp.departmentId);
+        setVal("positionId", emp.positionId);
+        setVal("joinDate", emp.joinDate);
+        setVal("baseSalary", emp.baseSalary);
+        setVal("employmentStatus", emp.employmentStatus || "PROBATION");
+        setVal("nik", emp.nik);
+        setVal("npwp", emp.npwp);
+        setVal("gender", emp.gender);
+        setVal("phone", emp.phone);
+        setVal("birthPlace", emp.birthPlace);
+        setVal("birthDate", emp.birthDate);
+        setVal("address", emp.address);
+        setVal("city", emp.city);
+        setVal("province", emp.province);
+        setVal("postalCode", emp.postalCode);
+        setVal("maritalStatus", emp.maritalStatus || "SINGLE");
+        setVal("religion", emp.religion);
+        setVal("nationality", emp.nationality || "Indonesia");
+        setVal("bpjsKes", emp.bpjsKes);
+        setVal("bpjsTk", emp.bpjsTk);
+        setVal("endDate", emp.endDate);
+        setVal("photoUrl", emp.photoUrl);
+    }
+
+    (window as any).deleteEmp = async function (id: string) {
+        if (
+            !confirm(
+                "Apakah Anda yakin ingin menghapus (me-resign-kan) karyawan ini?",
+            )
+        )
+            return;
+
+        const token = localStorage.getItem("flowhr_token");
+        try {
+            const res = await fetch(`${API}/employees/${id}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadEmployees();
+            } else {
+                alert("Gagal menghapus: " + data.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Terjadi kesalahan koneksi");
+        }
+    };
+
+    loadEmployees();
+</script>

@@ -1,5 +1,7 @@
 ---
 // AppLayout.astro — Layout untuk halaman app yang memerlukan autentikasi
+import "../styles/global.css";
+
 interface Props {
   title: string;
   activeMenu?: string;
@@ -8,187 +10,441 @@ interface Props {
 const { title, activeMenu } = Astro.props;
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="FlowHR — HR Management System" />
-  <title>{title} | FlowHR</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --primary: #4F46E5;
-      --primary-dark: #3730A3;
-      --accent: #06B6D4;
-      --bg: #0F172A;
-      --surface: #1E293B;
-      --surface2: #334155;
-      --text: #F1F5F9;
-      --text-muted: #94A3B8;
-      --border: #334155;
-      --success: #10B981;
-      --warning: #F59E0B;
-      --danger: #EF4444;
-    }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FlowHR — HR Management System" />
+    <title>{title} | FlowHR</title>
+    <style>
+      /* Sidebar */
+      .sidebar {
+        width: 260px;
+        background: var(--bg);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 50;
+      }
+      .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 24px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+      }
+      .sidebar-logo .logo-icon {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 24px;
+      }
+      .sidebar-logo .logo-icon div {
+        width: 6px;
+        background: white;
+      }
+      .sidebar-logo .logo-icon div:nth-child(1) {
+        height: 12px;
+        background: var(--pink);
+      }
+      .sidebar-logo .logo-icon div:nth-child(2) {
+        height: 18px;
+        background: var(--cyan);
+      }
+      .sidebar-logo .logo-icon div:nth-child(3) {
+        height: 24px;
+        background: white;
+      }
 
-    /* Sidebar */
-    .sidebar {
-      width: 260px; background: var(--surface); border-right: 1px solid var(--border);
-      display: flex; flex-direction: column; padding: 0; position: fixed; top: 0; left: 0; height: 100vh;
-    }
-    .sidebar-logo {
-      display: flex; align-items: center; gap: 12px; padding: 24px 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .sidebar-logo .logo-icon {
-      width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--accent));
-      border-radius: 10px; display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 18px; color: white;
-    }
-    .sidebar-logo .logo-text { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
-    .sidebar-logo .logo-text span { color: var(--primary); }
+      .sidebar-logo .logo-text {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
 
-    .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
-    .nav-section { padding: 8px 16px 4px; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-    .nav-item {
-      display: flex; align-items: center; gap: 12px; padding: 10px 20px;
-      color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;
-      border-radius: 8px; margin: 2px 8px; transition: all 0.2s;
-    }
-    .nav-item:hover { background: var(--surface2); color: var(--text); }
-    .nav-item.active { background: var(--primary); color: white; }
-    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+      .sidebar-nav {
+        flex: 1;
+        padding: 16px 0;
+        overflow-y: auto;
+      }
+      .nav-section {
+        padding: 12px 24px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 24px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+      }
+      .nav-item:hover {
+        background: var(--surface2);
+        color: var(--text);
+      }
+      .nav-item.active {
+        background: var(--surface);
+        color: var(--primary);
+        border-left-color: var(--primary);
+      }
+      .nav-item svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+      }
 
-    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
-    .user-badge {
-      display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;
-      background: var(--surface2); cursor: pointer;
-    }
-    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: white; }
-    .user-info .name { font-size: 13px; font-weight: 600; }
-    .user-info .role { font-size: 11px; color: var(--text-muted); }
+      .sidebar-footer {
+        padding: 16px 24px;
+        border-top: 1px solid var(--border);
+        background: var(--bg);
+      }
+      .user-badge {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 4px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: border-color 0.2s;
+      }
+      .user-badge:hover {
+        border-color: var(--primary);
+      }
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 14px;
+        color: #000;
+      }
+      .user-info .name {
+        font-size: 13px;
+        font-weight: 700;
+        color: white;
+      }
+      .user-info .role {
+        font-size: 11px;
+        color: var(--text-muted);
+        font-weight: 500;
+        text-transform: uppercase;
+      }
 
-    /* Main */
-    .main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; }
-    .topbar {
-      height: 64px; background: var(--surface); border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; padding: 0 32px; gap: 16px; position: sticky; top: 0; z-index: 10;
-    }
-    .page-title { font-size: 18px; font-weight: 600; }
-    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+      /* Main Area */
+      .main {
+        margin-left: 260px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-image:
+          linear-gradient(var(--grid) 1px, transparent 1px),
+          linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
 
-    .content { padding: 32px; flex: 1; }
+      .topbar {
+        height: 73px;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 40px;
+        gap: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .page-title {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+      .topbar-actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
-  </style>
-</head>
-<body>
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">F</div>
-      <div class="logo-text">Flow<span>HR</span></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">Overview</div>
-      <a href="/app/dashboard" class={`nav-item${activeMenu === 'dashboard' ? ' active' : ''}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-        Dashboard
-      </a>
+      .content {
+        padding: 40px;
+        flex: 1;
+        max-width: 1400px;
+      }
 
-      <div class="nav-section">HR Management</div>
-      <a href="/app/employees" class={`nav-item${activeMenu === 'employees' ? ' active' : ''}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-        Karyawan
-      </a>
-      <a href="/app/attendance" class={`nav-item${activeMenu === 'attendance' ? ' active' : ''}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        Kehadiran
-      </a>
-      <a href="/app/leaves" class={`nav-item${activeMenu === 'leaves' ? ' active' : ''}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        Cuti
-      </a>
-      <a href="/app/claims" class={`nav-item${activeMenu === 'claims' ? ' active' : ''}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Klaim & Reimbursement
-      </a>
+      /* Card styling overrides for inside app */
+      .app-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 24px;
+        border-radius: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon"><div></div><div></div><div></div></div>
+        <div class="logo-text">FLOW</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <a
+          href="/app/dashboard"
+          class={`nav-item${activeMenu === "dashboard" ? " active" : ""}`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            ></path></svg
+          >
+          Dashboard
+        </a>
 
-      <div class="nav-section">Finance</div>
-      <a href="/app/payroll" class={`nav-item${activeMenu === 'payroll' ? ' active' : ''}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        Payroll
-      </a>
+        <div class="nav-section">HR Management</div>
+        <a
+          href="/app/employees"
+          class={`nav-item${activeMenu === "employees" ? " active" : ""}`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            ></path></svg
+          >
+          Karyawan
+        </a>
+        <a
+          href="/app/attendance"
+          class={`nav-item${activeMenu === "attendance" ? " active" : ""}`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg
+          >
+          Kehadiran
+        </a>
+        <a
+          href="/app/leaves"
+          class={`nav-item${activeMenu === "leaves" ? " active" : ""}`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            ></path></svg
+          >
+          Cuti
+        </a>
+        <a
+          href="/app/claims"
+          class={`nav-item${activeMenu === "claims" ? " active" : ""}`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            ></path></svg
+          >
+          Klaim & Reimbursement
+        </a>
 
-      <div class="nav-section">Talent</div>
-      <a href="/app/ats" class={`nav-item${activeMenu === 'ats' ? ' active' : ''}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-        Rekrutmen (ATS)
-      </a>
-      <a href="/app/onboarding" class={`nav-item${activeMenu === 'onboarding' ? ' active' : ''}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-        Onboarding
-      </a>
-      <a href="/app/performance" class={`nav-item${activeMenu === 'performance' ? ' active' : ''}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-        Performance
-      </a>
+        <div class="nav-section">Finance</div>
+        <a
+          href="/app/payroll"
+          class={`nav-item${activeMenu === "payroll" ? " active" : ""}`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path></svg
+          >
+          Payroll
+        </a>
 
-      <div class="nav-section">Analytics</div>
-      <a href="/app/analytics" class={`nav-item${activeMenu === 'analytics' ? ' active' : ''}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        Analytics & Laporan
-      </a>
-    </nav>
+        <div class="nav-section">Talent</div>
+        <a
+          href="/app/ats"
+          class={`nav-item${activeMenu === "ats" ? " active" : ""}`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            ></path></svg
+          >
+          Rekrutmen (ATS)
+        </a>
+        <a
+          href="/app/onboarding"
+          class={`nav-item${activeMenu === "onboarding" ? " active" : ""}`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+            ></path></svg
+          >
+          Onboarding
+        </a>
+        <a
+          href="/app/performance"
+          class={`nav-item${activeMenu === "performance" ? " active" : ""}`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            ></path></svg
+          >
+          Performance
+        </a>
 
-    <div class="sidebar-footer">
-      <div class="user-badge" id="userBadge">
-        <div class="user-avatar" id="userInitials">U</div>
-        <div class="user-info">
-          <div class="name" id="userName">Loading...</div>
-          <div class="role" id="userRole">—</div>
+        <div class="nav-section">Analytics</div>
+        <a
+          href="/app/analytics"
+          class={`nav-item${activeMenu === "analytics" ? " active" : ""}`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            ></path></svg
+          >
+          Analytics
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-badge" id="userBadge">
+          <div class="user-avatar" id="userInitials">U</div>
+          <div class="user-info">
+            <div class="name" id="userName">Loading...</div>
+            <div class="role" id="userRole">—</div>
+          </div>
         </div>
       </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <span class="page-title">{title}</span>
+        <div class="topbar-actions">
+          <button id="logoutBtn" class="btn-outline">Logout</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <slot />
+      </main>
     </div>
-  </aside>
 
-  <div class="main">
-    <header class="topbar">
-      <span class="page-title">{title}</span>
-      <div class="topbar-actions">
-        <button id="logoutBtn" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;">Logout</button>
-      </div>
-    </header>
+    <script>
+      // Auth guard
+      const token = localStorage.getItem("flowhr_token");
+      if (!token) window.location.href = "/login";
 
-    <main class="content">
-      <slot />
-    </main>
-  </div>
+      // Load user info
+      const user = JSON.parse(localStorage.getItem("flowhr_user") || "{}");
+      const name = user.username || "User";
+      document.getElementById("userName").textContent = name;
+      document.getElementById("userInitials").textContent = name
+        .charAt(0)
+        .toUpperCase();
+      const roles = user.roles || [];
+      document.getElementById("userRole").textContent =
+        roles[0]?.replace("ROLE_", "") || "Employee";
 
-  <script>
-    // Auth guard
-    const token = localStorage.getItem('flowhr_token');
-    if (!token) window.location.href = '/login';
-
-    // Load user info
-    const user = JSON.parse(localStorage.getItem('flowhr_user') || '{}');
-    const name = user.username || 'User';
-    document.getElementById('userName')!.textContent = name;
-    document.getElementById('userInitials')!.textContent = name.charAt(0).toUpperCase();
-    const roles: string[] = user.roles || [];
-    document.getElementById('userRole')!.textContent = roles[0]?.replace('ROLE_', '') || 'Employee';
-
-    // Logout
-    document.getElementById('logoutBtn')!.addEventListener('click', () => {
-      localStorage.clear();
-      window.location.href = '/login';
-    });
-  </script>
-</body>
+      // Logout
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "/login";
+      });
+    </script>
+  </body>
 </html>

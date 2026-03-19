@@ -1,0 +1,171 @@
+---
+// app/attendance/index.astro — Halaman Kehadiran dengan AttendanceCalendar React Island
+import AppLayout from "../../../layouts/AppLayout.astro";
+import AttendanceCalendar from "../../../components/islands/AttendanceCalendar";
+---
+
+<AppLayout title="Kehadiran" activeMenu="attendance">
+    <div
+        style="display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start;"
+    >
+        <!-- Calendar (React Island) -->
+        <div
+            style="background: var(--surface); border: 1px solid var(--border); border-radius: 0px; padding: 24px;"
+        >
+            <h2 style="font-size: 16px; font-weight: 600; margin-bottom: 20px;">
+                Kalender Kehadiran
+            </h2>
+            <AttendanceCalendar client:load />
+        </div>
+
+        <!-- Clock In/Out Panel -->
+        <div>
+            <div
+                style="background: var(--surface); border: 1px solid var(--border); border-radius: 0px; padding: 24px; margin-bottom: 16px;"
+            >
+                <h3
+                    style="font-size: 15px; font-weight: 600; margin-bottom: 6px;"
+                >
+                    Hari Ini
+                </h3>
+                <div
+                    id="todayStatus"
+                    style="font-size: 13px; color: #94A3B8; margin-bottom: 20px;"
+                >
+                    Memuat...
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button
+                        id="clockInBtn"
+                        onclick="clockAction('clock-in')"
+                        style="padding: 14px; background: linear-gradient(135deg, #10B981, #059669); border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 600; cursor: pointer;"
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="display:inline-block;vertical-align:text-bottom;margin-right:6px;"
+                            ><polygon points="5 3 19 12 5 21 5 3"
+                            ></polygon></svg
+                        > Clock In
+                    </button>
+                    <button
+                        id="clockOutBtn"
+                        onclick="clockAction('clock-out')"
+                        style="padding: 14px; background: linear-gradient(135deg, #EF4444, #DC2626); border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 600; cursor: pointer;"
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="display:inline-block;vertical-align:text-bottom;margin-right:6px;"
+                            ><rect
+                                width="18"
+                                height="18"
+                                x="3"
+                                y="3"
+                                rx="2"
+                                ry="2"></rect></svg
+                        > Clock Out
+                    </button>
+                </div>
+                <div
+                    id="clockMsg"
+                    style="margin-top: 12px; font-size: 13px; display: none; border-radius: 0px; padding: 10px;"
+                >
+                </div>
+            </div>
+
+            <div
+                style="background: var(--surface); border: 1px solid var(--border); border-radius: 0px; padding: 16px;"
+            >
+                <div
+                    style="font-size: 12px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;"
+                >
+                    Catatan
+                </div>
+                <div style="font-size: 13px; color: #94A3B8; line-height: 1.6;">
+                    • Jam kerja standard: <strong style="color:#F1F5F9;"
+                        >08:00 — 17:00</strong
+                    ><br />
+                    • Toleransi keterlambatan: <strong style="color:#F1F5F9;"
+                        >15 menit</strong
+                    ><br />
+                    • Keterlambatan mempengaruhi potongan gaji
+                </div>
+            </div>
+        </div>
+    </div>
+</AppLayout>
+
+<script>
+    const API =
+        (import.meta as any).env?.PUBLIC_API_URL ||
+        "http://localhost:8080/api/v1";
+    const token = localStorage.getItem("flowhr_token");
+
+    // Show current time
+    function updateTime() {
+        const now = new Date();
+        document.getElementById("todayStatus")!.textContent =
+            now.toLocaleDateString("id-ID", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            }) +
+            " • " +
+            now.toLocaleTimeString("id-ID");
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    async function clockAction(action: string) {
+        const msg = document.getElementById("clockMsg")!;
+        msg.style.display = "none";
+        try {
+            // Dummy geolocation per spec
+            const lat = 0.0,
+                lng = 0.0;
+            const res = await fetch(
+                `${API}/attendance/${action}?lat=${lat}&lng=${lng}`,
+                {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${token}` },
+                },
+            );
+            const data = await res.json();
+            msg.style.display = "block";
+            if (data.success) {
+                msg.style.background = "rgba(16,185,129,0.1)";
+                msg.style.color = "#6EE7B7";
+                msg.innerHTML =
+                    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:text-bottom;margin-right:4px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> ' +
+                    data.message;
+            } else {
+                msg.style.background = "rgba(239,68,68,0.1)";
+                msg.style.color = "#FCA5A5";
+                msg.innerHTML =
+                    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:text-bottom;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> ' +
+                    data.message;
+            }
+        } catch (e) {
+            msg.style.display = "block";
+            msg.style.background = "rgba(239,68,68,0.1)";
+            msg.style.color = "#FCA5A5";
+            msg.innerHTML =
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:text-bottom;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Terjadi kesalahan';
+        }
+    }
+</script>
