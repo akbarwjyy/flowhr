@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --primary: #d4ff00;
+    /* Lime Green */
+    --primary-hover: #bce600;
+    --accent: #06b6d4;
+    /* Cyan */
+    --pink: #ec4899;
+    --purple: #8b5cf6;
+
+    --bg: #000000;
+    --surface: #0a0a0a;
+    --surface2: #111111;
+
+    --text: #ffffff;
+    --text-muted: #a3a3a3;
+    --border: #222222;
+    --grid: rgba(255, 255, 255, 0.04);
+
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* Global Grid Background */
+.bg-grid {
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 80px 80px;
+}
+
+.bg-grid-small {
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* Common Components */
+.btn-primary {
+    background-color: var(--primary);
+    color: #000;
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--text);
+    color: var(--text);
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+.btn-outline:hover {
+    background: var(--text);
+    color: #000;
+}
+
+/* Base Inputs */
+input,
+select {
+    width: 100%;
+    padding: 12px 14px;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--primary);
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Floating decorative elements */
+.float-shape {
+    position: absolute;
+    z-index: -1;
+    opacity: 0.8;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--surface2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border);
+}
