@@ -1,0 +1,578 @@
+---
+// app/claims/index.astro — Halaman Klaim (Reimbursement)
+import AppLayout from "../../../layouts/AppLayout.astro";
+---
+
+<AppLayout title="Klaim & Reimbursement" activeMenu="claims">
+    <div class="page-header" style="margin-bottom: 24px;">
+        <div>
+            <h1>Manajemen Klaim</h1>
+            <p>Ajukan reimbursement dan pantau status klaim Anda</p>
+        </div>
+    </div>
+
+    <div
+        style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: start;"
+    >
+        <!-- Riwayat Klaim & Approval -->
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+            <!-- Riwayat Klaim Saya -->
+            <div>
+                <h2
+                    style="font-size: 16px; font-weight: 600; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;"
+                >
+                    Riwayat Klaim Saya
+                </h2>
+                <div
+                    id="myClaimsList"
+                    style="display: flex; flex-direction: column; gap: 12px;"
+                >
+                    <div
+                        style="color: #64748B; padding: 20px; text-align: center;"
+                    >
+                        Memuat riwayat...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Persetujuan Bawahan (Khusus Manager / HR) -->
+            <div id="approvalSection" style="display: none;">
+                <h2
+                    style="font-size: 16px; font-weight: 600; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; color: var(--primary);"
+                >
+                    Butuh Persetujuan Anda
+                </h2>
+                <div
+                    id="pendingClaimsList"
+                    style="display: flex; flex-direction: column; gap: 12px;"
+                >
+                    <div
+                        style="color: #64748B; padding: 20px; text-align: center;"
+                    >
+                        Memuat data...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Pengajuan Klaim -->
+        <div
+            style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; position: sticky; top: 80px;"
+        >
+            <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 16px;">
+                Ajukan Klaim Baru
+            </h3>
+
+            <div
+                id="formMsg"
+                style="display: none; padding: 12px; border-radius: 4px; font-size: 13px; margin-bottom: 16px;"
+            >
+            </div>
+
+            <form
+                id="claimForm"
+                style="display: flex; flex-direction: column; gap: 16px;"
+            >
+                <div>
+                    <label class="form-label" for="categoryId"
+                        >Kategori Klaim *</label
+                    >
+                    <select
+                        id="categoryId"
+                        name="categoryId"
+                        class="form-control"
+                        required
+                    >
+                        <option value="">Pilih Kategori...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label" for="title">Judul Klaim *</label>
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        class="form-control"
+                        required
+                        placeholder="Contoh: Tiket Pesawat Dinas Jakarta"
+                    />
+                </div>
+
+                <div>
+                    <label class="form-label" for="claimDate"
+                        >Tanggal Transaksi/Nota *</label
+                    >
+                    <input
+                        type="date"
+                        id="claimDate"
+                        name="claimDate"
+                        class="form-control"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label class="form-label" for="amount">Jumlah (IDR) *</label
+                    >
+                    <div style="position: relative;">
+                        <span
+                            style="position: absolute; left: 12px; top: 10px; color: #94A3B8; font-size: 14px;"
+                            >Rp</span
+                        >
+                        <input
+                            type="number"
+                            id="amount"
+                            name="amount"
+                            class="form-control"
+                            style="padding-left: 36px;"
+                            required
+                            min="1"
+                            step="1"
+                            placeholder="0"
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label" for="description"
+                        >Catatan / Deskripsi</label
+                    >
+                    <textarea
+                        id="description"
+                        name="description"
+                        class="form-control"
+                        rows="3"
+                        placeholder="Informasi tambahan terkait klaim..."
+                    ></textarea>
+                </div>
+
+                <div>
+                    <label class="form-label" for="receiptUrl"
+                        >Link Bukti (Kwitansi/Struk)</label
+                    >
+                    <input
+                        type="url"
+                        id="receiptUrl"
+                        name="receiptUrl"
+                        class="form-control"
+                        placeholder="https://link-google-drive/foto-struk.jpg"
+                    />
+                    <div
+                        style="font-size: 11px; color: #64748B; margin-top: 4px;"
+                    >
+                        * Opsional, namun disarankan untuk verifikasi HR
+                    </div>
+                </div>
+
+                <button
+                    type="submit"
+                    id="submitBtn"
+                    class="btn-primary"
+                    style="margin-top: 8px; width: 100%;"
+                    >Kirim Pengajuan</button
+                >
+            </form>
+        </div>
+    </div>
+</AppLayout>
+
+<style>
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .page-header p {
+        color: #94a3b8;
+        font-size: 14px;
+    }
+
+    .claim-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .claim-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    .claim-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #f1f5f9;
+        margin-bottom: 2px;
+    }
+    .claim-category {
+        font-size: 11px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .claim-amount {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--primary);
+    }
+    .claim-meta {
+        font-size: 12px;
+        color: #64748b;
+        display: flex;
+        gap: 16px;
+        margin-top: 4px;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .action-btn {
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+    }
+    .btn-approve {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+    .btn-approve:hover {
+        background: rgba(16, 185, 129, 0.2);
+    }
+    .btn-reject {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+    .btn-reject:hover {
+        background: rgba(239, 68, 68, 0.2);
+    }
+</style>
+
+<script>
+    const API =
+        (import.meta as any).env?.PUBLIC_API_URL ||
+        "http://localhost:8080/api/v1";
+    let currentUser: any = null;
+
+    const STATUS_COLORS: Record<string, string> = {
+        PENDING: "#F59E0B", // Amber
+        APPROVED_MANAGER: "#0EA5E9", // Sky Blue
+        APPROVED_HR: "#10B981", // Emerald
+        REJECTED: "#EF4444", // Red
+    };
+
+    const STATUS_LABELS: Record<string, string> = {
+        PENDING: "Menunggu Persetujuan",
+        APPROVED_MANAGER: "Disetujui Manajer (Menunggu HR)",
+        APPROVED_HR: "Selesai (Disetujui HR)",
+        REJECTED: "Ditolak",
+    };
+
+    const formatIDR = (val: number) => {
+        return new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0,
+        }).format(val);
+    };
+
+    async function initPage() {
+        const token = localStorage.getItem("flowhr_token");
+        if (!token) {
+            window.location.href = "/login";
+            return;
+        }
+
+        try {
+            const userStr = localStorage.getItem("flowhr_user");
+            if (userStr) currentUser = JSON.parse(userStr);
+        } catch (e) {
+            console.error("Failed parsing user from localStorage");
+        }
+
+        await fetchCategories();
+        await loadMyClaims();
+
+        // Cek apakan user adalah Manager atau HR
+        const roles = currentUser?.roles || [];
+        if (
+            roles.includes("ROLE_MANAGER") ||
+            roles.includes("ROLE_HR_ADMIN") ||
+            roles.includes("ROLE_SUPER_ADMIN")
+        ) {
+            document.getElementById("approvalSection")!.style.display = "block";
+            await loadPendingClaims();
+        }
+    }
+
+    async function fetchCategories() {
+        try {
+            const res = await fetch(`${API}/claims/categories`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                },
+            });
+            const data = await res.json();
+            if (data.success && data.data) {
+                const select = document.getElementById("categoryId")!;
+                data.data.forEach((cat: any) => {
+                    const opt = document.createElement("option");
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error("Failed to load claims categories", e);
+        }
+    }
+
+    async function loadMyClaims() {
+        const list = document.getElementById("myClaimsList")!;
+        try {
+            const res = await fetch(`${API}/claims/my`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                },
+            });
+            const data = await res.json();
+
+            if (!data.success || !data.data || data.data.length === 0) {
+                list.innerHTML =
+                    '<div style="color: #64748B; padding: 20px; text-align: center; border: 1px dashed var(--border); border-radius: 8px;">Belum ada riwayat pengajuan klaim</div>';
+                return;
+            }
+
+            list.innerHTML = data.data
+                .map(
+                    (c: any) => `
+                <div class="claim-card">
+                    <div class="claim-header">
+                        <div>
+                            <div class="claim-title">${c.title}</div>
+                            <div class="claim-category">${c.category_name}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="claim-amount">${formatIDR(c.amount)}</div>
+                            <span class="status-badge" style="background: ${STATUS_COLORS[c.status]}15; color: ${STATUS_COLORS[c.status]}; border: 1px solid ${STATUS_COLORS[c.status]}30; margin-top: 4px;">
+                                ${STATUS_LABELS[c.status] || c.status}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="claim-meta">
+                        <div><strong style="color: #94A3B8;">Tanggal:</strong> ${c.claim_date}</div>
+                        ${c.receipt_url ? `<div><a href="${c.receipt_url}" target="_blank" style="color: var(--primary);">Lihat Bukti ↗</a></div>` : ""}
+                    </div>
+                    ${c.notes ? `<div style="font-size: 11px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; margin-top: 8px; color: #CBD5E1;"><strong style="color:#94A3B8;">Catatan Reviewer:</strong> ${c.notes}</div>` : ""}
+                </div>
+            `,
+                )
+                .join("");
+        } catch (e) {
+            list.innerHTML =
+                '<div style="color: #EF4444; padding: 20px; text-align: center;">Error memuat data</div>';
+            console.error(e);
+        }
+    }
+
+    async function loadPendingClaims() {
+        const list = document.getElementById("pendingClaimsList")!;
+        try {
+            const res = await fetch(`${API}/claims/pending`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                },
+            });
+            const data = await res.json();
+
+            if (!data.success || !data.data || data.data.length === 0) {
+                list.innerHTML =
+                    '<div style="color: #64748B; padding: 20px; text-align: center; border: 1px dashed var(--border); border-radius: 8px;">Tidak ada klaim yang menunggu persetujuan Anda</div>';
+                return;
+            }
+
+            const isHR =
+                currentUser?.roles?.includes("ROLE_HR_ADMIN") ||
+                currentUser?.roles?.includes("ROLE_SUPER_ADMIN");
+            const approveFn = isHR ? "approveHR" : "approveManager";
+
+            list.innerHTML = data.data
+                .map(
+                    (c: any) => `
+                <div class="claim-card" style="border-color: rgba(14, 165, 233, 0.3);">
+                    <div class="claim-header">
+                        <div>
+                            <div style="font-size: 11px; color: var(--primary); font-weight: 600; margin-bottom: 2px;">Dari: ${c.employee_first_name} ${c.employee_last_name || ""}</div>
+                            <div class="claim-title">${c.title}</div>
+                            <div class="claim-category">${c.category_name}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="claim-amount">${formatIDR(c.amount)}</div>
+                            <span class="status-badge" style="background: ${STATUS_COLORS[c.status]}15; color: ${STATUS_COLORS[c.status]}; border: 1px solid ${STATUS_COLORS[c.status]}30; margin-top: 4px;">
+                                ${STATUS_LABELS[c.status] || c.status}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="claim-meta">
+                        <div><strong style="color: #94A3B8;">Tanggal:</strong> ${c.claim_date}</div>
+                        ${c.description ? `<div style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${c.description}"><strong style="color: #94A3B8;">Desc:</strong> ${c.description}</div>` : ""}
+                        ${c.receipt_url ? `<div><a href="${c.receipt_url}" target="_blank" style="color: var(--primary);">Bukti ↗</a></div>` : ""}
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
+                        <input type="text" id="notes-${c.id}" placeholder="Catatan opsional..." style="flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 0 8px; color: #fff; font-size: 12px;">
+                        <button class="action-btn btn-reject" onclick="rejectClaim(${c.id})">Tolak</button>
+                        <button class="action-btn btn-approve" onclick="${approveFn}(${c.id})">Setujui</button>
+                    </div>
+                </div>
+            `,
+                )
+                .join("");
+        } catch (e) {
+            list.innerHTML =
+                '<div style="color: #EF4444; padding: 20px; text-align: center;">Error memuat data persetujuan</div>';
+            console.error(e);
+        }
+    }
+
+    // Submit Form
+    document
+        .getElementById("claimForm")
+        ?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const form = e.target as HTMLFormElement;
+            const submitBtn = document.getElementById(
+                "submitBtn",
+            ) as HTMLButtonElement;
+            const msgDiv = document.getElementById("formMsg")!;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Mengirim...";
+            msgDiv.style.display = "none";
+
+            const payload = {
+                categoryId: parseInt(
+                    (form.elements.namedItem("categoryId") as HTMLSelectElement)
+                        .value,
+                ),
+                title: (form.elements.namedItem("title") as HTMLInputElement)
+                    .value,
+                claimDate: (
+                    form.elements.namedItem("claimDate") as HTMLInputElement
+                ).value,
+                amount: parseFloat(
+                    (form.elements.namedItem("amount") as HTMLInputElement)
+                        .value,
+                ),
+                description:
+                    (
+                        form.elements.namedItem(
+                            "description",
+                        ) as HTMLTextAreaElement
+                    ).value || null,
+                receiptUrl:
+                    (form.elements.namedItem("receiptUrl") as HTMLInputElement)
+                        .value || null,
+            };
+
+            try {
+                const res = await fetch(`${API}/claims`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    msgDiv.textContent = "Klaim berhasil diajukan!";
+                    msgDiv.style.background = "rgba(16, 185, 129, 0.1)";
+                    msgDiv.style.color = "#10B981";
+                    msgDiv.style.display = "block";
+                    form.reset();
+                    loadMyClaims(); // Refresh list
+                } else {
+                    throw new Error(data.message || "Gagal mengirim data");
+                }
+            } catch (err: any) {
+                msgDiv.textContent = err.message;
+                msgDiv.style.background = "rgba(239, 68, 68, 0.1)";
+                msgDiv.style.color = "#EF4444";
+                msgDiv.style.display = "block";
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Kirim Pengajuan";
+            }
+        });
+
+    // Approval Actions
+    (window as any).approveManager = async function (id: number) {
+        processApproval(id, "approve/manager", "Setujui");
+    };
+
+    (window as any).approveHR = async function (id: number) {
+        processApproval(id, "approve/hr", "Setujui");
+    };
+
+    (window as any).rejectClaim = async function (id: number) {
+        processApproval(id, "reject", "Tolak");
+    };
+
+    async function processApproval(
+        id: number,
+        action: string,
+        actionName: string,
+    ) {
+        if (
+            !confirm(
+                `Apakah Anda yakin ingin melakukan aksi "${actionName}" pada klaim ini?`,
+            )
+        )
+            return;
+
+        const notesInput = document.getElementById(
+            `notes-${id}`,
+        ) as HTMLInputElement;
+        const notes = notesInput ? notesInput.value : "";
+
+        try {
+            const res = await fetch(
+                `${API}/claims/${id}/${action}?notes=${encodeURIComponent(notes)}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                    },
+                },
+            );
+            const data = await res.json();
+
+            if (data.success) {
+                loadPendingClaims(); // Refresh list
+            } else {
+                alert("Gagal memproses: " + data.message);
+            }
+        } catch (err) {
+            alert("Terjadi kesalahan koneksi saat memproses klaim.");
+        }
+    }
+
+    // Initialize Page
+    document.addEventListener("DOMContentLoaded", initPage);
+</script>
