@@ -1,0 +1,462 @@
+---
+// app/performance/index.astro — Halaman Performance & KPI
+import AppLayout from "../../../layouts/AppLayout.astro";
+---
+
+<AppLayout title="Performance & KPI" activeMenu="performance">
+    <div class="page-header" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+                <h1>Performance & KPI</h1>
+                <p>Pantau target kerja (Goal) dan Penilaian Kinerja (Appraisal)</p>
+            </div>
+            
+            <!-- Employee Selector (Khusus Manager & HR) -->
+            <div id="employeeSelectWrapper" style="display: none; width: 300px;">
+                <label class="form-label" style="font-size: 12px; color: var(--primary);">Mode Manajer/HR : Cari Karyawan</label>
+                <select id="employeeSelect" class="form-control" style="background: rgba(14, 165, 233, 0.1); border-color: rgba(14, 165, 233, 0.3);">
+                    <option value="">-- Mode Pribadi (My Goals) --</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODE PRIBADI: KARYAWAN ===== -->
+    <div id="personalModeLayout" style="display: block;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="font-size: 18px; font-weight: 600; border-bottom: 1px solid var(--border); padding-bottom: 8px; flex: 1;">Target/KPI Saya Tahun Ini</h2>
+        </div>
+        
+        <div id="myGoalsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+            <div style="color: #64748B; padding: 20px; text-align: center; grid-column: 1 / -1;">Memuat data KPI...</div>
+        </div>
+    </div>
+
+    <!-- ===== MODE MANAJER / HR: EVALUASI KARYAWAN ===== -->
+    <div id="managerModeLayout" style="display: none; grid-template-columns: 1fr 400px; gap: 24px; align-items: start;">
+        
+        <!-- Kiri: Appraisals & Goals List -->
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+            
+            <!-- Daftar Appraisal -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <h2 style="font-size: 16px; font-weight: 600; color: var(--primary);">Riwayat Evaluasi (Appraisal)</h2>
+                    <button class="btn-primary" style="font-size: 11px; padding: 4px 12px;" onclick="document.getElementById('appraisalFormWrapper').style.display='block'">+ Buat Evaluasi</button>
+                </div>
+                
+                <div id="appraisalsList" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
+
+            <!-- Daftar Goals -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <h2 style="font-size: 16px; font-weight: 600;">Goal / KPI Karyawan</h2>
+                    <button class="btn-outline" style="font-size: 11px; padding: 4px 12px;" onclick="document.getElementById('goalFormWrapper').style.display='block'">+ Tambah KPI</button>
+                </div>
+                
+                <div id="managerGoalsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;"></div>
+            </div>
+
+        </div>
+
+        <!-- Kanan: Form Tambah -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            
+            <!-- FORM APPRAISAL -->
+            <div id="appraisalFormWrapper" style="display: none; background: var(--surface); border: 1px solid var(--primary); border-radius: 8px; padding: 20px; position: sticky; top: 80px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 15px; font-weight: 600; color: var(--primary);">Buat Evaluasi Baru</h3>
+                    <button style="background:none; border:none; color: #94A3B8; cursor: pointer;" onclick="document.getElementById('appraisalFormWrapper').style.display='none'">Tutup</button>
+                </div>
+                <form id="appraisalForm" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label class="form-label">Tahun</label>
+                            <input type="number" id="appYear" name="periodYear" class="form-control" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Kuartal</label>
+                            <input type="number" id="appQuarter" name="periodQuarter" class="form-control" min="1" max="4" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Pencapaian Goal (%)</label>
+                        <input type="number" name="goalAchievement" class="form-control" min="0" max="200" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Skor Keseluruhan (0-5)</label>
+                        <input type="number" name="overallScore" class="form-control" step="0.1" min="0" max="5" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Kekuatan (Strengths)</label>
+                        <textarea name="strengths" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label">Area Perbaikan</label>
+                        <textarea name="improvements" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label">Rencana Pengembangan</label>
+                        <textarea name="developmentPlan" class="form-control" rows="2"></textarea>
+                    </div>
+                    <button type="submit" id="btnAppraisal" class="btn-primary" style="margin-top: 8px;">Simpan Draft Evaluasi</button>
+                </form>
+            </div>
+
+            <!-- FORM GOAL -->
+            <div id="goalFormWrapper" style="display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 15px; font-weight: 600;">Tambah Goal/KPI</h3>
+                    <button style="background:none; border:none; color: #94A3B8; cursor: pointer;" onclick="document.getElementById('goalFormWrapper').style.display='none'">Tutup</button>
+                </div>
+                <form id="goalForm" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <label class="form-label">Judul KPI</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Deskripsi & Target</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                        <input type="text" name="target" class="form-control" style="margin-top: 4px;" placeholder="Contoh Target (ex: 100 penjualan)" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label class="form-label">Metrik</label>
+                            <input type="text" name="metric" class="form-control" placeholder="ex: Rupiah, Persen" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Nilai Target</label>
+                            <input type="number" name="targetValue" class="form-control" step="0.01" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Bobot / Weight (%)</label>
+                        <input type="number" name="weight" class="form-control" min="1" max="100" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label class="form-label">Tahun</label>
+                            <input type="number" id="goalYear" name="periodYear" class="form-control" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Bulan/Priode</label>
+                            <input type="number" id="goalMonth" name="periodMonth" class="form-control" required>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label class="form-label">Mulai</label>
+                            <input type="date" name="startDate" class="form-control" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Selesai</label>
+                            <input type="date" name="endDate" class="form-control" required>
+                        </div>
+                    </div>
+                    <button type="submit" id="btnGoal" class="btn-outline" style="margin-top: 8px;">Simpan KPI Baru</button>
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+
+</AppLayout>
+
+<style>
+    .page-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .page-header p { color: #94a3b8; font-size: 14px; }
+
+    .kpi-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+    .kpi-title { font-size: 14px; font-weight: 600; color: #F8FAFC; margin-bottom: 4px; }
+    .kpi-desc { font-size: 12px; color: #94A3B8; margin-bottom: 12px; line-height: 1.4; }
+    .kpi-meta { display: flex; justify-content: space-between; font-size: 11px; color: #CBD5E1; }
+    .kpi-weight { position: absolute; top: 16px; right: 16px; font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; }
+
+    .appraisal-card {
+        background: var(--surface);
+        border: 1px solid var(--border); border-left: 4px solid var(--primary);
+        border-radius: 6px; padding: 16px;
+    }
+    .appraisal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .appraisal-score { font-size: 20px; font-weight: 700; color: var(--primary); line-height: 1; }
+    .appraisal-status { font-size: 10px; padding: 3px 8px; border-radius: 100px; font-weight: 600; text-transform: uppercase; }
+    
+    .status-DRAFT { background: rgba(148, 163, 184, 0.1); color: #94A3B8; }
+    .status-SUBMITTED { background: rgba(59, 130, 246, 0.1); color: #3B82F6; }
+    .status-FINAL { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+
+    .appraisal-detail { font-size: 12px; color: #94A3B8; margin-bottom: 6px; }
+    .appraisal-detail strong { color: #CBD5E1; font-weight: 600; display: block; margin-bottom: 2px; }
+</style>
+
+<script>
+    const API = (import.meta as any).env?.PUBLIC_API_URL || "http://localhost:8080/api/v1";
+    let currentUser: any = null;
+    let selectedEmployeeId: number | null = null;
+    const currentYear = new Date().getFullYear();
+
+    async function initPage() {
+        const token = localStorage.getItem("flowhr_token");
+        if (!token) return window.location.href = "/login";
+        try { currentUser = JSON.parse(localStorage.getItem("flowhr_user") || "{}"); } catch(e){}
+
+        // Init forms dates
+        (document.getElementById("appYear") as HTMLInputElement).value = currentYear.toString();
+        (document.getElementById("goalYear") as HTMLInputElement).value = currentYear.toString();
+        (document.getElementById("goalMonth") as HTMLInputElement).value = (new Date().getMonth() + 1).toString();
+
+        const roles = currentUser?.roles || [];
+        const isManagerOrHR = roles.includes("ROLE_MANAGER") || roles.includes("ROLE_HR_ADMIN") || roles.includes("ROLE_SUPER_ADMIN");
+
+        if (isManagerOrHR) {
+            document.getElementById("employeeSelectWrapper")!.style.display = "block";
+            await loadEmployeesDropdown();
+        }
+
+        // Default: load my goals
+        await loadMyGoals();
+
+        // Listener Dropdown
+        document.getElementById("employeeSelect")?.addEventListener("change", (e) => {
+            const val = (e.target as HTMLSelectElement).value;
+            if (val) {
+                selectedEmployeeId = parseInt(val);
+                document.getElementById("personalModeLayout")!.style.display = "none";
+                document.getElementById("managerModeLayout")!.style.display = "grid";
+                loadManagerData();
+            } else {
+                selectedEmployeeId = null;
+                document.getElementById("personalModeLayout")!.style.display = "block";
+                document.getElementById("managerModeLayout")!.style.display = "none";
+                loadMyGoals();
+            }
+        });
+
+        setupForms();
+    }
+
+    async function loadEmployeesDropdown() {
+        try {
+            const res = await fetch(`${API}/employees?size=500`, { headers: { Authorization: `Bearer ${localStorage.getItem("flowhr_token")}` } });
+            const p = await res.json();
+            if(p.success && p.data && p.data.employees) {
+                const sel = document.getElementById("employeeSelect")!;
+                p.data.employees.forEach((e:any) => {
+                    if(e.id !== currentUser.id) { // Jangan evaluasi diri sendiri di dropdown
+                        const opt = document.createElement("option"); opt.value = e.id; 
+                        opt.textContent = `${e.nip || '-'} | ${e.firstName} ${e.lastName || ''} - ${e.positionTitle || 'Staf'}`;
+                        sel.appendChild(opt);
+                    }
+                });
+            }
+        } catch(e){}
+    }
+
+    async function loadMyGoals() {
+        const list = document.getElementById("myGoalsList")!;
+        try {
+            const res = await fetch(`${API}/performance/my/goals?year=${currentYear}`, { headers: { Authorization: `Bearer ${localStorage.getItem("flowhr_token")}` } });
+            const p = await res.json();
+            if(!p.success || !p.data.length) {
+                list.innerHTML = `<div style="color: #64748B; padding: 20px; text-align: center; grid-column: 1 / -1; border: 1px dashed var(--border); border-radius: 8px;">Belum ada target KPI yang ditetapkan untuk tahun ${currentYear}.</div>`;
+                return;
+            }
+            list.innerHTML = p.data.map((g:any) => renderGoalCard(g)).join("");
+        } catch(e) { list.innerHTML = 'Error'; }
+    }
+
+    function renderGoalCard(g: any) {
+        return `
+            <div class="kpi-card">
+                <div class="kpi-weight">Bobot: ${g.weight}%</div>
+                <div class="kpi-title">${g.title}</div>
+                <div class="kpi-desc">${g.description || '-'}</div>
+                <div class="kpi-meta">
+                    <div><strong>Target:</strong> ${g.target_value} ${g.metric}</div>
+                    <div style="text-align: right;">${g.start_date} <br/>s/d ${g.end_date}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    async function loadManagerData() {
+        if(!selectedEmployeeId) return;
+        
+        // 1. Load Goals for selected employee
+        const gList = document.getElementById("managerGoalsList")!;
+        gList.innerHTML = 'Loading...';
+        try {
+            const res = await fetch(`${API}/performance/employees/${selectedEmployeeId}/goals?year=${currentYear}`, { headers: { Authorization: `Bearer ${localStorage.getItem("flowhr_token")}` } });
+            const p = await res.json();
+            if(!p.success || !p.data.length) gList.innerHTML = `<div style="grid-column: 1/-1; color:#94A3B8; font-size:12px;">Belum ada KPI.</div>`;
+            else gList.innerHTML = p.data.map((g:any) => renderGoalCard(g)).join("");
+        } catch(e){}
+
+        // 2. Load Appraisals
+        const aList = document.getElementById("appraisalsList")!;
+        aList.innerHTML = 'Loading...';
+        try {
+            const res = await fetch(`${API}/performance/employees/${selectedEmployeeId}/appraisals`, { headers: { Authorization: `Bearer ${localStorage.getItem("flowhr_token")}` } });
+            const p = await res.json();
+            if(!p.success || !p.data.length) aList.innerHTML = `<div style="color:#94A3B8; font-size:12px;">Belum ada appraisal.</div>`;
+            else {
+                aList.innerHTML = p.data.map((a:any) => {
+                    let actionHtml = '';
+                    if (a.status === 'DRAFT') {
+                        actionHtml = `<button class="btn-primary" style="font-size:10px; padding:2px 8px; margin-top:8px;" onclick="submitAppraisal(${a.id})">Kirim (Submit)</button>`;
+                    } else if (a.status === 'SUBMITTED' && (currentUser.roles.includes('ROLE_HR_ADMIN') || currentUser.roles.includes('ROLE_SUPER_ADMIN'))) {
+                        actionHtml = `
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); display:flex; gap: 8px; align-items: center;">
+                                <input type="number" id="bonus-${a.id}" placeholder="Bonus IDR" class="form-control" style="font-size:11px; padding:2px 6px; height:24px;">
+                                <label style="font-size:11px; display:flex; gap:4px; align-items:center;">
+                                    <input type="checkbox" id="promo-${a.id}"> Promosi?
+                                </label>
+                                <button class="btn-primary" style="font-size:10px; padding:2px 8px; background:#10B981;" onclick="finalizeAppraisal(${a.id})">Finalisasi</button>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="appraisal-card">
+                            <div class="appraisal-header">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 14px; color: #F8FAFC;">Periode ${a.period_year} Q${a.period_quarter}</div>
+                                    <div style="font-size: 11px; color: #94A3B8;">Oleh: ${a.reviewer_first_name} ${a.reviewer_last_name||''}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div class="appraisal-score">${a.overall_score}/5.0</div>
+                                    <span class="appraisal-status status-${a.status}">${a.status}</span>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div class="appraisal-detail"><strong>Strengths</strong> ${a.strengths || '-'}</div>
+                                <div class="appraisal-detail"><strong>Improvements</strong> ${a.improvements || '-'}</div>
+                            </div>
+                            
+                            ${a.status === 'FINAL' && (a.bonus_recommendation || a.promotion_recommendation) ? `
+                                <div style="margin-top: 12px; padding: 8px; background: rgba(16,185,129,0.1); border-radius:4px; border: 1px dashed rgba(16,185,129,0.3); font-size:11px; color:#10B981;">
+                                    <strong>Keputusan Final HR:</strong>
+                                    Bonus: IDR ${a.bonus_recommendation || 0} ${a.promotion_recommendation ? ' | Direkomendasikan Promosi' : ''}
+                                </div>
+                            ` : ''}
+
+                            ${actionHtml}
+                        </div>
+                    `;
+                }).join("");
+            }
+        } catch(e){}
+    }
+
+    function setupForms() {
+        document.getElementById("goalForm")?.addEventListener("submit", async(e) => {
+            e.preventDefault();
+            if(!selectedEmployeeId) return;
+
+            const form = e.target as HTMLFormElement;
+            const btn = document.getElementById("btnGoal") as HTMLButtonElement;
+            btn.disabled = true;
+
+            const payload = {
+                title: (form.elements.namedItem("title") as HTMLInputElement).value,
+                description: (form.elements.namedItem("description") as HTMLTextAreaElement).value,
+                target: (form.elements.namedItem("target") as HTMLInputElement).value,
+                metric: (form.elements.namedItem("metric") as HTMLInputElement).value,
+                targetValue: parseFloat((form.elements.namedItem("targetValue") as HTMLInputElement).value),
+                weight: parseInt((form.elements.namedItem("weight") as HTMLInputElement).value),
+                periodYear: parseInt((form.elements.namedItem("periodYear") as HTMLInputElement).value),
+                periodMonth: parseInt((form.elements.namedItem("periodMonth") as HTMLInputElement).value),
+                startDate: (form.elements.namedItem("startDate") as HTMLInputElement).value,
+                endDate: (form.elements.namedItem("endDate") as HTMLInputElement).value,
+            };
+
+            try {
+                const res = await fetch(`${API}/performance/employees/${selectedEmployeeId}/goals`, {
+                    method: 'POST',
+                    headers: { 'Content-Type':'application/json', Authorization: `Bearer ${localStorage.getItem("flowhr_token")}` },
+                    body: JSON.stringify(payload)
+                });
+                const d = await res.json();
+                if(d.success) {
+                    form.reset();
+                    document.getElementById('goalFormWrapper')!.style.display='none';
+                    loadManagerData();
+                } else alert(d.message);
+            } catch(er) { alert("Error koneksi"); }
+            finally { btn.disabled = false; }
+        });
+
+        document.getElementById("appraisalForm")?.addEventListener("submit", async(e) => {
+            e.preventDefault();
+            if(!selectedEmployeeId) return;
+
+            const form = e.target as HTMLFormElement;
+            const btn = document.getElementById("btnAppraisal") as HTMLButtonElement;
+            btn.disabled = true;
+
+            const payload = {
+                period: "QUARTERLY", // Defaulting for simple UI
+                periodYear: parseInt((form.elements.namedItem("periodYear") as HTMLInputElement).value),
+                periodQuarter: parseInt((form.elements.namedItem("periodQuarter") as HTMLInputElement).value),
+                goalAchievement: parseFloat((form.elements.namedItem("goalAchievement") as HTMLInputElement).value),
+                overallScore: parseFloat((form.elements.namedItem("overallScore") as HTMLInputElement).value),
+                strengths: (form.elements.namedItem("strengths") as HTMLTextAreaElement).value,
+                improvements: (form.elements.namedItem("improvements") as HTMLTextAreaElement).value,
+                developmentPlan: (form.elements.namedItem("developmentPlan") as HTMLTextAreaElement).value,
+            };
+
+            try {
+                const res = await fetch(`${API}/performance/employees/${selectedEmployeeId}/appraisals`, {
+                    method: 'POST',
+                    headers: { 'Content-Type':'application/json', Authorization: `Bearer ${localStorage.getItem("flowhr_token")}` },
+                    body: JSON.stringify(payload)
+                });
+                const d = await res.json();
+                if(d.success) {
+                    form.reset();
+                    document.getElementById('appraisalFormWrapper')!.style.display='none';
+                    loadManagerData();
+                } else alert(d.message);
+            } catch(er) { alert("Error koneksi"); }
+            finally { btn.disabled = false; }
+        });
+    }
+
+    (window as any).submitAppraisal = async function(id: number) {
+        if(!confirm("Kirim evaluasi ini? Draft yang disubmit tidak bisa diubah lagi!")) return;
+        try {
+            const res = await fetch(`${API}/performance/appraisals/${id}/submit`, {
+                method: 'PUT', headers: { Authorization: `Bearer ${localStorage.getItem("flowhr_token")}` }
+            });
+            const d = await res.json();
+            if(d.success) loadManagerData(); else alert(d.message);
+        } catch(e){ alert('Error koneksi'); }
+    };
+
+    (window as any).finalizeAppraisal = async function(id: number) {
+        if(!confirm("Finalisasi evaluasi dan tetapkan bonus/promosi?")) return;
+        const bonusRaw = (document.getElementById(`bonus-${id}`) as HTMLInputElement)?.value;
+        const promo = (document.getElementById(`promo-${id}`) as HTMLInputElement)?.checked || false;
+        const bonus = bonusRaw ? parseFloat(bonusRaw) : 0;
+
+        try {
+            const res = await fetch(`${API}/performance/appraisals/${id}/finalize?bonusRecommendation=${bonus}&promotionRecommendation=${promo}`, {
+                method: 'PUT', headers: { Authorization: `Bearer ${localStorage.getItem("flowhr_token")}` }
+            });
+            const d = await res.json();
+            if(d.success) loadManagerData(); else alert(d.message);
+        } catch(e){ alert('Error koneksi'); }
+    }
+
+    document.addEventListener("DOMContentLoaded", initPage);
+</script>
