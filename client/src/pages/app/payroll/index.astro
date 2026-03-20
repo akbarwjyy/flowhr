@@ -1,0 +1,674 @@
+---
+// app/payroll/index.astro — Halaman Payroll
+import AppLayout from "../../../layouts/AppLayout.astro";
+---
+
+<AppLayout title="Payroll & Slip Gaji" activeMenu="payroll">
+    <div class="page-header" style="margin-bottom: 24px;">
+        <div>
+            <h1>Payroll & Slip Gaji</h1>
+            <p>Pantau slip gaji bulanan Anda</p>
+        </div>
+    </div>
+
+    <div
+        id="payrollLayout"
+        style="display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start;"
+    >
+        <!-- Kolom Kiri: Slip Gaji Saya (Semua User) -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div>
+                <h2
+                    style="font-size: 16px; font-weight: 600; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;"
+                >
+                    Slip Gaji Saya
+                </h2>
+                <div
+                    id="myPayslipsList"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;"
+                >
+                    <div
+                        style="color: #64748B; padding: 20px; text-align: center; grid-column: 1 / -1;"
+                    >
+                        Memuat data...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kolom Kanan: Manajemen & Generate Payroll (Khusus HR/Admin) -->
+        <div
+            id="adminSection"
+            style="display: none; flex-direction: column; gap: 24px;"
+        >
+            <div
+                style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;"
+            >
+                <h3
+                    style="font-size: 15px; font-weight: 600; margin-bottom: 16px; color: var(--primary);"
+                >
+                    Buat Batch Payroll Baru
+                </h3>
+                <form
+                    id="createBatchForm"
+                    style="display: flex; flex-direction: column; gap: 16px;"
+                >
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                    >
+                        <div>
+                            <label class="form-label">Tahun</label>
+                            <input
+                                type="number"
+                                id="batchYear"
+                                name="year"
+                                class="form-control"
+                                required
+                                min="2020"
+                                max="2100"
+                            />
+                        </div>
+                        <div>
+                            <label class="form-label">Bulan</label>
+                            <select
+                                id="batchMonth"
+                                name="month"
+                                class="form-control"
+                                required
+                            >
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Filter departemen opsional (dikosongkan = semua departemen) -->
+                    <div>
+                        <label class="form-label"
+                            >ID Departemen (Opsional)</label
+                        >
+                        <input
+                            type="number"
+                            id="batchDept"
+                            name="departmentId"
+                            class="form-control"
+                            placeholder="Kosongkan untuk semua departemen"
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        id="submitBatchBtn"
+                        class="btn-primary"
+                        style="margin-top: 8px;">Buat Draft Batch</button
+                    >
+                    <div
+                        id="batchMsg"
+                        style="display: none; padding: 8px; border-radius: 4px; font-size: 12px; margin-top: 8px;"
+                    >
+                    </div>
+                </form>
+            </div>
+
+            <div>
+                <h3
+                    style="font-size: 15px; font-weight: 600; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;"
+                >
+                    Daftar Batch Payroll
+                </h3>
+                <div
+                    id="batchesList"
+                    style="display: flex; flex-direction: column; gap: 12px;"
+                >
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Lihat Detail Slip Gaji -->
+    <div id="payslipModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="font-size: 18px; font-weight: 600;">
+                    Detail Slip Gaji Bulanan
+                </h2>
+                <button class="close-btn" onclick="closePayslipModal()"
+                    >&times;</button
+                >
+            </div>
+            <div
+                class="modal-body"
+                id="payslipModalBody"
+                style="padding: 24px;"
+            >
+                <!-- Content generated via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tabel Daftar Slip Karyawan (Untuk Admin/HR melihat hasil batch) -->
+    <div id="batchDetailsModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 style="font-size: 18px; font-weight: 600;">
+                    Daftar Slip Gaji Karyawan (Batch <span id="batchLabelStr"
+                    ></span>)
+                </h2>
+                <button class="close-btn" onclick="closeBatchDetailsModal()"
+                    >&times;</button
+                >
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Karyawan</th>
+                                <th>Pendapatan</th>
+                                <th>Potongan</th>
+                                <th>Gaji Bersih</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="batchDetailsTableBody">
+                            <!-- JS Injection -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</AppLayout>
+
+<style>
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .page-header p {
+        color: #94a3b8;
+        font-size: 14px;
+    }
+
+    .payslip-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+        transition:
+            transform 0.2s,
+            border-color 0.2s;
+        cursor: pointer;
+    }
+    .payslip-card:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+    .payslip-period {
+        font-size: 16px;
+        font-weight: 700;
+        color: #f8fafc;
+        margin-bottom: 12px;
+    }
+    .payslip-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        margin-bottom: 6px;
+        color: #94a3b8;
+    }
+    .payslip-net {
+        display: flex;
+        justify-content: space-between;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    .batch-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 16px;
+    }
+    .batch-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    /* Modal Styles */
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .modal-content {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .close-btn {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        font-size: 24px;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    /* Table Styles */
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 600px;
+    }
+    th {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: #94a3b8;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+    }
+    td {
+        padding: 12px 16px;
+        font-size: 13px;
+        border-bottom: 1px solid var(--surface);
+    }
+    tr:last-child td {
+        border-bottom: none;
+    }
+</style>
+
+<script>
+    const API =
+        (import.meta as any).env?.PUBLIC_API_URL ||
+        "http://localhost:8080/api/v1";
+    let currentUser: any = null;
+
+    const formatMonth = (m: number, y: number) => {
+        const date = new Date(y, m - 1, 1);
+        return date.toLocaleString("id-ID", { month: "long", year: "numeric" });
+    };
+
+    const formatIDR = (val: number) => {
+        return new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0,
+        }).format(val);
+    };
+
+    async function initPage() {
+        const token = localStorage.getItem("flowhr_token");
+        if (!token) {
+            window.location.href = "/login";
+            return;
+        }
+
+        try {
+            const userStr = localStorage.getItem("flowhr_user");
+            if (userStr) currentUser = JSON.parse(userStr);
+        } catch (e) {}
+
+        // Set default month/year for batch form
+        const now = new Date();
+        (document.getElementById("batchYear") as HTMLInputElement).value = now
+            .getFullYear()
+            .toString();
+        (document.getElementById("batchMonth") as HTMLSelectElement).value = (
+            now.getMonth() + 1
+        ).toString();
+
+        await loadMyPayslips();
+
+        const roles = currentUser?.roles || [];
+        if (
+            roles.includes("ROLE_HR_ADMIN") ||
+            roles.includes("ROLE_SUPER_ADMIN")
+        ) {
+            const layout = document.getElementById("payrollLayout")!;
+            layout.style.gridTemplateColumns = "1fr 450px"; // ubah layout jadi split view
+
+            document.getElementById("adminSection")!.style.display = "flex";
+            await loadBatches();
+        }
+    }
+
+    // --- FITUR KARYAWAN (MY PAYSLIPS) ---
+    async function loadMyPayslips() {
+        const list = document.getElementById("myPayslipsList")!;
+        try {
+            const res = await fetch(`${API}/payroll/my-payslips`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                },
+            });
+            const payload = await res.json();
+
+            if (
+                !payload.success ||
+                !payload.data ||
+                payload.data.length === 0
+            ) {
+                list.innerHTML =
+                    '<div style="color: #64748B; padding: 20px; text-align: center; grid-column: 1 / -1; border: 1px dashed var(--border); border-radius: 8px;">Belum ada riwayat slip gaji</div>';
+                return;
+            }
+
+            // Expose logic to window for modal
+            (window as any).rawPayslips = payload.data;
+
+            list.innerHTML = payload.data
+                .map(
+                    (p: any, idx: number) => `
+                <div class="payslip-card" onclick="openPayslipModal(${idx})">
+                    <div class="payslip-period">${formatMonth(p.period_month, p.period_year)}</div>
+                    <div class="payslip-row">
+                        <span>Gaji Pokok</span>
+                        <span style="color:#CBD5E1;">${formatIDR(p.base_salary)}</span>
+                    </div>
+                    <div class="payslip-row">
+                        <span>Tunjangan & Klaim</span>
+                        <span style="color:#10B981;">+${formatIDR(p.meal_allowance + p.reimbursement_total)}</span>
+                    </div>
+                    <div class="payslip-row">
+                        <span>Potongan (PPH21, BPJS, Telat)</span>
+                        <span style="color:#EF4444;">-${formatIDR(p.total_deduction)}</span>
+                    </div>
+                    <div class="payslip-net">
+                        <span>Take Home Pay</span>
+                        <span>${formatIDR(p.net_salary)}</span>
+                    </div>
+                </div>
+            `,
+                )
+                .join("");
+        } catch (e) {
+            list.innerHTML =
+                '<div style="color: #EF4444; padding: 20px; text-align: center; grid-column: 1 / -1;">Error memuat data slip gaji</div>';
+        }
+    }
+
+    // --- FITUR ADMIN / HR (BATCH MANAGEMENT) ---
+    async function loadBatches() {
+        const list = document.getElementById("batchesList")!;
+        try {
+            const res = await fetch(`${API}/payroll/batches`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                },
+            });
+            const payload = await res.json();
+
+            if (
+                !payload.success ||
+                !payload.data ||
+                payload.data.length === 0
+            ) {
+                list.innerHTML =
+                    '<div style="color: #64748B; font-size: 13px;">Belum ada riwayat batch payroll</div>';
+                return;
+            }
+
+            list.innerHTML = payload.data
+                .map(
+                    (b: any) => `
+                <div class="batch-card" style="border-left: 3px solid ${b.status === "DONE" ? "#10B981" : "#F59E0B"}">
+                    <div class="batch-header">
+                        <div style="font-weight: 600;">Periode: ${formatMonth(b.period_month, b.period_year)}</div>
+                        <div style="font-size: 11px; padding: 3px 8px; border-radius: 4px; background: ${b.status === "DONE" ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)"}; color: ${b.status === "DONE" ? "#10B981" : "#F59E0B"}">
+                            ${b.status}
+                        </div>
+                    </div>
+                    <div style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">
+                        Departemen: ${b.department_name || "Semua Departemen"}<br/>
+                        Total Slip Gaji: ${b.total_payslips || 0} karyawan
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        ${
+                            b.status === "DRAFT"
+                                ? `<button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="processBatch(${b.id}, this)">Proses Payroll</button>`
+                                : `<button class="btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="viewBatchSlips(${b.id}, '${formatMonth(b.period_month, b.period_year)}')">Lihat Slip Karyawan</button>`
+                        }
+                    </div>
+                </div>
+            `,
+                )
+                .join("");
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    document
+        .getElementById("createBatchForm")
+        ?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const form = e.target as HTMLFormElement;
+            const btn = document.getElementById(
+                "submitBatchBtn",
+            ) as HTMLButtonElement;
+            const msg = document.getElementById("batchMsg")!;
+
+            btn.disabled = true;
+            btn.textContent = "Membuat...";
+
+            const year = (form.elements.namedItem("year") as HTMLInputElement)
+                .value;
+            const month = (
+                form.elements.namedItem("month") as HTMLSelectElement
+            ).value;
+            const deptStr = (
+                form.elements.namedItem("departmentId") as HTMLInputElement
+            ).value;
+            const deptParam = deptStr ? `&departmentId=${deptStr}` : "";
+
+            try {
+                const res = await fetch(
+                    `${API}/payroll/batches?year=${year}&month=${month}${deptParam}`,
+                    {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                        },
+                    },
+                );
+                const data = await res.json();
+
+                if (data.success) {
+                    msg.textContent = "Batch berhasil dibuat!";
+                    msg.style.color = "#10B981";
+                    msg.style.display = "block";
+                    loadBatches();
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (err: any) {
+                msg.textContent = "Error: " + err.message;
+                msg.style.color = "#EF4444";
+                msg.style.display = "block";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Buat Draft Batch";
+                setTimeout(() => {
+                    msg.style.display = "none";
+                }, 3000);
+            }
+        });
+
+    (window as any).processBatch = async function (
+        id: number,
+        btn: HTMLButtonElement,
+    ) {
+        if (
+            !confirm(
+                "Proses Payroll akan mengalkulasi kehadiran, klaim reimbursement, PPH21, dan BPJS, kemudian mencetak slip gaji karyawan. Lanjutkan?",
+            )
+        )
+            return;
+
+        btn.disabled = true;
+        btn.textContent = "Memproses...";
+
+        try {
+            const res = await fetch(`${API}/payroll/batches/${id}/process`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                },
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert("Payroll berhasil diproses!");
+                loadBatches();
+            } else {
+                alert("Gagal memproses: " + data.message);
+                btn.disabled = false;
+                btn.textContent = "Proses Payroll";
+            }
+        } catch (e) {
+            alert("Terjadi kesalahan koneksi");
+            btn.disabled = false;
+            btn.textContent = "Proses Payroll";
+        }
+    };
+
+    (window as any).viewBatchSlips = async function (
+        id: number,
+        label: string,
+    ) {
+        document.getElementById("batchLabelStr")!.textContent = label;
+        const tbody = document.getElementById("batchDetailsTableBody")!;
+        tbody.innerHTML =
+            '<tr><td colspan="5" style="text-align: center;">Memuat data...</td></tr>';
+        document.getElementById("batchDetailsModal")!.style.display = "flex";
+
+        try {
+            const res = await fetch(`${API}/payroll/batches/${id}/payslips`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                },
+            });
+            const payload = await res.json();
+
+            if (payload.success && payload.data && payload.data.length > 0) {
+                tbody.innerHTML = payload.data
+                    .map(
+                        (ps: any) => `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600; color: #F8FAFC;">${ps.first_name} ${ps.last_name || ""}</div>
+                            <div style="font-size: 11px; color: #64748B;">NIP: ${ps.nip}</div>
+                        </td>
+                        <td>
+                            <div style="color: #94A3B8; font-size: 11px;">Pokok: ${formatIDR(ps.base_salary)}</div>
+                            <div style="color: #10B981; font-size: 11px;">Tunj/Klaim: +${formatIDR(ps.meal_allowance + ps.reimbursement_total)}</div>
+                        </td>
+                        <td>
+                            <div style="color: #EF4444; font-size: 11px;">Total: -${formatIDR(ps.total_deduction)}</div>
+                        </td>
+                        <td style="font-weight: 600; color: var(--primary);">${formatIDR(ps.net_salary)}</td>
+                        <td><span style="font-size: 10px; padding: 2px 6px; background: rgba(16,185,129,0.1); color: #10B981; border-radius: 4px;">GENERATED</span></td>
+                    </tr>
+                `,
+                    )
+                    .join("");
+            } else {
+                tbody.innerHTML =
+                    '<tr><td colspan="5" style="text-align: center; color: #64748B;">Tidak ada slip gaji (mungkin tidak ada karyawan aktif di departemen tersebut).</td></tr>';
+            }
+        } catch (e) {
+            tbody.innerHTML =
+                '<tr><td colspan="5" style="text-align: center; color: #EF4444;">Error memuat detail slip gaji.</td></tr>';
+        }
+    };
+
+    (window as any).closeBatchDetailsModal = function () {
+        document.getElementById("batchDetailsModal")!.style.display = "none";
+    };
+
+    // --- Detail Modal Individual Payslip ---
+    (window as any).openPayslipModal = function (idx: number) {
+        const p = (window as any).rawPayslips[idx];
+        if (!p) return;
+
+        const html = `
+            <div style="text-align: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-size: 20px; font-weight: 700; color: #F8FAFC;">SLIP GAJI</h3>
+                <div style="color: #94A3B8; font-size: 14px;">Periode: ${formatMonth(p.period_month, p.period_year)}</div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <h4 style="font-size: 13px; color: var(--primary); margin-bottom: 8px;">PENDAPATAN</h4>
+                <div class="payslip-row"><span>Gaji Pokok</span> <span>${formatIDR(p.base_salary)}</span></div>
+                <div class="payslip-row"><span>Tunjangan Makan Kehadiran</span> <span>${formatIDR(p.meal_allowance)}</span></div>
+                <div class="payslip-row"><span>Reimbursement / Klaim</span> <span>${formatIDR(p.reimbursement_total)}</span></div>
+                <div class="payslip-row" style="margin-top: 8px; font-weight: 600; color: #E2E8F0;"><span>Total Pendapatan (Bruto)</span> <span>${formatIDR(p.gross_salary)}</span></div>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <h4 style="font-size: 13px; color: #EF4444; margin-bottom: 8px;">POTONGAN</h4>
+                <div class="payslip-row"><span>PPH21</span> <span>${formatIDR(p.pph21)}</span></div>
+                <div class="payslip-row"><span>BPJS Kesehatan (1%)</span> <span>${formatIDR(p.bpjs_kes_employee)}</span></div>
+                <div class="payslip-row"><span>BPJS Ketenagakerjaan (2%)</span> <span>${formatIDR(p.bpjs_tk_employee)}</span></div>
+                <div class="payslip-row"><span>Potongan Keterlambatan</span> <span>${formatIDR(p.late_deduction)}</span></div>
+                <div class="payslip-row" style="margin-top: 8px; font-weight: 600; color: #E2E8F0;"><span>Total Potongan</span> <span>${formatIDR(p.total_deduction)}</span></div>
+            </div>
+
+            <div class="payslip-net" style="background: rgba(14,165,233,0.1); padding: 16px; border-radius: 6px; border-top: none;">
+                <span>TAKE HOME PAY</span>
+                <span style="font-size: 20px;">${formatIDR(p.net_salary)}</span>
+            </div>
+        `;
+
+        document.getElementById("payslipModalBody")!.innerHTML = html;
+        document.getElementById("payslipModal")!.style.display = "flex";
+    };
+
+    (window as any).closePayslipModal = function () {
+        document.getElementById("payslipModal")!.style.display = "none";
+    };
+
+    document.addEventListener("DOMContentLoaded", initPage);
+</script>
