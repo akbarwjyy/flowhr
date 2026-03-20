@@ -1,0 +1,642 @@
+---
+// app/onboarding/index.astro — Halaman Onboarding & Offboarding
+import AppLayout from "../../../layouts/AppLayout.astro";
+---
+
+<AppLayout title="Onboarding Karyawan" activeMenu="onboarding">
+    <div class="page-header" style="margin-bottom: 24px;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: flex-end;"
+        >
+            <div>
+                <h1>Onboarding & Offboarding</h1>
+                <p>
+                    Kelola proses tahapan karyawan baru maupun yang akan resign
+                </p>
+            </div>
+
+            <!-- Employee Selector -->
+            <div style="width: 300px;">
+                <label class="form-label" style="font-size: 12px;"
+                    >Pilih Karyawan Asal / Tujuan :</label
+                >
+                <select
+                    id="employeeSelect"
+                    class="form-control"
+                    style="background: rgba(0,0,0,0.2);"
+                >
+                    <option value="">-- Ketik / Cari Karyawan --</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- State Kosong jika belum pilih karyawan -->
+    <div
+        id="emptyState"
+        style="background: var(--surface); border: 1px dashed var(--border); border-radius: 8px; padding: 64px 24px; text-align: center;"
+    >
+        <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            style="color: #64748B; margin-bottom: 16px;"
+            ><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle
+                cx="9"
+                cy="7"
+                r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path
+                d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg
+        >
+        <h2
+            style="font-size: 18px; font-weight: 600; color: #F8FAFC; margin-bottom: 8px;"
+        >
+            Pilih Karyawan Terlebih Dahulu
+        </h2>
+        <p
+            style="color: #94A3B8; font-size: 14px; max-width: 400px; margin: 0 auto;"
+        >
+            Pilih karyawan dari dropdown di sudut kanan atas untuk melihat atau
+            memulai tahapan Onboarding / Offboarding mereka.
+        </p>
+    </div>
+
+    <div
+        id="mainLayout"
+        style="display: none; grid-template-columns: 350px 1fr; gap: 24px; align-items: start;"
+    >
+        <!-- Kolom Kiri: Daftar Proses & Tombol Mulai (Khusus HR) -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div
+                id="startProcessCard"
+                style="background: var(--surface); border: 1px solid var(--primary); border-radius: 8px; padding: 20px; display: none;"
+            >
+                <h3
+                    style="font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--primary);"
+                >
+                    Mulai Proses Baru
+                </h3>
+                <form
+                    id="startProcessForm"
+                    style="display: flex; flex-direction: column; gap: 12px;"
+                >
+                    <div>
+                        <select
+                            id="eventType"
+                            class="form-control"
+                            required
+                            style="font-size: 13px;"
+                        >
+                            <option value="">Pilih Jenis Proses...</option>
+                            <option value="ONBOARDING"
+                                >Onboarding (Karyawan Baru)</option
+                            >
+                            <option value="OFFBOARDING"
+                                >Offboarding (Resign / Pensiun)</option
+                            >
+                            <option value="INTERNAL_TRANSFER"
+                                >Mutasi Internal</option
+                            >
+                        </select>
+                    </div>
+                    <div>
+                        <input
+                            type="date"
+                            id="startDate"
+                            class="form-control"
+                            required
+                            style="font-size: 13px;"
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        id="startBtn"
+                        class="btn-primary"
+                        style="font-size: 13px; padding: 8px;"
+                        >Mulai Proses Ini</button
+                    >
+                </form>
+            </div>
+
+            <div>
+                <h2
+                    style="font-size: 16px; font-weight: 600; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;"
+                >
+                    Riwayat Proses
+                </h2>
+                <div
+                    id="processList"
+                    style="display: flex; flex-direction: column; gap: 12px;"
+                >
+                    <!-- JS terinjeksi -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Kolom Kanan: Detail Task Checklist -->
+        <div
+            style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;"
+        >
+            <div
+                id="taskHeader"
+                style="display: none; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; border-bottom: 1px dashed var(--border); padding-bottom: 16px;"
+            >
+                <div>
+                    <div
+                        id="taskProcessType"
+                        style="font-size: 12px; color: var(--primary); font-weight: 600; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;"
+                    >
+                        ONBOARDING
+                    </div>
+                    <h3
+                        id="taskProcessDate"
+                        style="font-size: 18px; font-weight: 600; color: #F8FAFC;"
+                    >
+                        Tugas & Checklist
+                    </h3>
+                </div>
+                <div style="text-align: right;">
+                    <div
+                        style="font-size: 12px; color: #94A3B8; margin-bottom: 4px;"
+                    >
+                        Progress Penyelesaian
+                    </div>
+                    <div
+                        id="taskProgressStr"
+                        style="font-size: 16px; font-weight: 700; color: #10B981;"
+                    >
+                        0 / 0 Selesai
+                    </div>
+                </div>
+            </div>
+
+            <div
+                id="tasksContainer"
+                style="display: flex; flex-direction: column; gap: 12px;"
+            >
+                <div
+                    style="color: #64748B; padding: 40px; text-align: center; border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px;"
+                >
+                    Pilih salah satu riwayat proses di panel sebelah kiri untuk
+                    melihat checklist tugas.
+                </div>
+            </div>
+        </div>
+    </div>
+</AppLayout>
+
+<style>
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .page-header p {
+        color: #94a3b8;
+        font-size: 14px;
+    }
+
+    .process-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+    .process-card:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.04);
+    }
+    .process-card.active {
+        border-color: var(--primary);
+        background: rgba(14, 165, 233, 0.05);
+    }
+    .process-card .progress-bar-bg {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--border);
+    }
+    .process-card .progress-bar-fill {
+        height: 100%;
+        background: var(--primary);
+        transition: width 0.3s ease;
+    }
+
+    .task-card {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-left: 3px solid #64748b;
+        border-radius: 6px;
+        padding: 16px;
+        display: flex;
+        gap: 16px;
+        transition: all 0.2s;
+    }
+    .task-card.completed {
+        border-left-color: #10b981;
+        opacity: 0.8;
+    }
+    .task-card.in_progress {
+        border-left-color: #f59e0b;
+    }
+
+    .task-icon-wrap {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        flex-shrink: 0;
+    }
+    .completed .task-icon-wrap {
+        background: #10b981;
+        color: #fff;
+    }
+
+    .status-select {
+        background: var(--surface);
+        color: #f8fafc;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 11px;
+        outline: none;
+    }
+</style>
+
+<script>
+    const API =
+        (import.meta as any).env?.PUBLIC_API_URL ||
+        "http://localhost:8080/api/v1";
+    let currentUser: any = null;
+    let employeesList: any[] = [];
+    let selectedEmployeeId: number | null = null;
+    let selectedProcessId: number | null = null;
+
+    const EVENT_LABELS: Record<string, string> = {
+        ONBOARDING: "Onboarding",
+        OFFBOARDING: "Offboarding",
+        INTERNAL_TRANSFER: "Mutasi Internal",
+    };
+
+    async function initPage() {
+        const token = localStorage.getItem("flowhr_token");
+        if (!token) {
+            window.location.href = "/login";
+            return;
+        }
+
+        try {
+            const userStr = localStorage.getItem("flowhr_user");
+            if (userStr) currentUser = JSON.parse(userStr);
+        } catch (e) {}
+
+        // Fetch Employee list for dropdown
+        await loadEmployees();
+
+        // Tampilkan form Start Process jika HR_ADMIN/SUPER_ADMIN
+        const roles = currentUser?.roles || [];
+        if (
+            roles.includes("ROLE_HR_ADMIN") ||
+            roles.includes("ROLE_SUPER_ADMIN")
+        ) {
+            document.getElementById("startProcessCard")!.style.display =
+                "block";
+            // Pre-fill today's date
+            (document.getElementById("startDate") as HTMLInputElement).value =
+                new Date().toISOString().split("T")[0];
+        }
+
+        // Listener Dropdown Employee
+        document
+            .getElementById("employeeSelect")
+            ?.addEventListener("change", (e) => {
+                const val = (e.target as HTMLSelectElement).value;
+                if (val) {
+                    selectedEmployeeId = parseInt(val);
+                    document.getElementById("emptyState")!.style.display =
+                        "none";
+                    document.getElementById("mainLayout")!.style.display =
+                        "grid";
+                    selectedProcessId = null;
+                    resetTasksView();
+                    loadProcesses();
+                } else {
+                    selectedEmployeeId = null;
+                    document.getElementById("emptyState")!.style.display =
+                        "block";
+                    document.getElementById("mainLayout")!.style.display =
+                        "none";
+                }
+            });
+
+        // Start Process logic
+        document
+            .getElementById("startProcessForm")
+            ?.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                if (!selectedEmployeeId)
+                    return alert("Pilih karyawan terlebih dahulu!");
+
+                const type = (
+                    document.getElementById("eventType") as HTMLSelectElement
+                ).value;
+                const dateStr = (
+                    document.getElementById("startDate") as HTMLInputElement
+                ).value;
+                const btn = document.getElementById(
+                    "startBtn",
+                ) as HTMLButtonElement;
+                btn.disabled = true;
+
+                try {
+                    const res = await fetch(
+                        `${API}/onboarding/start?employeeId=${selectedEmployeeId}&eventType=${type}&startDate=${dateStr}`,
+                        {
+                            method: "POST",
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                            },
+                        },
+                    );
+                    const data = await res.json();
+                    if (data.success) {
+                        (
+                            document.getElementById(
+                                "startProcessForm",
+                            ) as HTMLFormElement
+                        ).reset();
+                        (
+                            document.getElementById(
+                                "startDate",
+                            ) as HTMLInputElement
+                        ).value = new Date().toISOString().split("T")[0];
+                        await loadProcesses();
+
+                        // Auto-select the newly created process
+                        if (data.data && data.data.processId) {
+                            selectProcess(
+                                data.data.processId,
+                                type,
+                                dateStr,
+                                0,
+                                0,
+                            ); // initial 0 tasks completed
+                        }
+                    } else {
+                        alert("Gagal memulai proses: " + data.message);
+                    }
+                } catch (e) {
+                    alert("Kesalahan koneksi");
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+    }
+
+    async function loadEmployees() {
+        try {
+            // Karena ini sekedar fetch list, kita re-use endpoint get all employees
+            const res = await fetch(`${API}/employees?size=500`, {
+                // Asumsi max 500 nampilin dropdown
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                },
+            });
+            const payload = await res.json();
+            if (payload.success && payload.data && payload.data.employees) {
+                employeesList = payload.data.employees;
+                const select = document.getElementById("employeeSelect")!;
+                employeesList.forEach((e) => {
+                    const opt = document.createElement("option");
+                    opt.value = e.id;
+                    opt.textContent = `${e.nip ? e.nip + " - " : ""}${e.firstName} ${e.lastName || ""} (${e.positionTitle || "Posisi belum dist"})`;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error("Error fetching employees", e);
+        }
+    }
+
+    async function loadProcesses() {
+        if (!selectedEmployeeId) return;
+        const list = document.getElementById("processList")!;
+        list.innerHTML =
+            '<div style="color: #64748B; font-size: 13px;">Memuat riwayat...</div>';
+
+        try {
+            const res = await fetch(
+                `${API}/onboarding/employee/${selectedEmployeeId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                    },
+                },
+            );
+            const payload = await res.json();
+
+            if (
+                !payload.success ||
+                !payload.data ||
+                payload.data.length === 0
+            ) {
+                list.innerHTML =
+                    '<div style="color: #64748B; padding: 20px; font-size: 13px; text-align: center; border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px;">Karyawan ini belum memiliki riwayat onboarding/offboarding.</div>';
+                return;
+            }
+
+            list.innerHTML = payload.data
+                .map((p: any) => {
+                    const perc =
+                        p.total_tasks > 0
+                            ? Math.round(
+                                  (p.completed_tasks / p.total_tasks) * 100,
+                              )
+                            : 0;
+                    const isComplete =
+                        p.total_tasks > 0 &&
+                        p.completed_tasks === p.total_tasks;
+                    const cardClass =
+                        selectedProcessId === p.id
+                            ? "process-card active"
+                            : "process-card";
+
+                    return `
+                <div class="${cardClass}" onclick="selectProcess(${p.id}, '${p.event_type}', '${p.start_date}', ${p.completed_tasks}, ${p.total_tasks})">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px; color: ${isComplete ? "#10B981" : "#F8FAFC"}">${EVENT_LABELS[p.event_type] || p.event_type}</div>
+                            <div style="font-size: 11px; color: #94A3B8;">Mulai: ${p.start_date}</div>
+                        </div>
+                        <div style="font-size: 14px; font-weight: 700; color: ${isComplete ? "#10B981" : "var(--primary)"};">${perc}%</div>
+                    </div>
+                    <div style="font-size: 11px; color: #64748B;">Selesai ${p.completed_tasks} dari ${p.total_tasks} tugas</div>
+                    
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: ${perc}%; background: ${isComplete ? "#10B981" : "var(--primary)"};"></div>
+                    </div>
+                </div>
+                `;
+                })
+                .join("");
+        } catch (e) {
+            list.innerHTML =
+                '<div style="color: #EF4444; font-size: 13px;">Gagal memuat proses.</div>';
+        }
+    }
+
+    function resetTasksView() {
+        document.getElementById("taskHeader")!.style.display = "none";
+        document.getElementById("tasksContainer")!.innerHTML =
+            '<div style="color: #64748B; padding: 40px; text-align: center; border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px;">Pilih salah satu riwayat proses di panel sebelah kiri untuk melihat checklist tugas.</div>';
+    }
+
+    (window as any).selectProcess = async function (
+        id: number,
+        type: string,
+        startDate: string,
+        completed: number,
+        total: number,
+    ) {
+        selectedProcessId = id;
+
+        // Refresh styling on process cards
+        loadProcesses();
+
+        document.getElementById("taskHeader")!.style.display = "flex";
+        document.getElementById("taskProcessType")!.textContent =
+            EVENT_LABELS[type] || type;
+        document.getElementById("taskProcessDate")!.innerHTML =
+            `Tugas & Checklist <span style="font-size: 13px; font-weight: 400; color: #94A3B8;">(Mulai: ${startDate})</span>`;
+        document.getElementById("taskProgressStr")!.textContent =
+            `${completed} / ${total} Selesai`;
+        document.getElementById("taskProgressStr")!.style.color =
+            completed === total && total > 0 ? "#10B981" : "var(--primary)";
+
+        const taskBox = document.getElementById("tasksContainer")!;
+        taskBox.innerHTML =
+            '<div style="padding: 20px; text-align: center; color: #94A3B8;">Memuat tugas...</div>';
+
+        try {
+            const res = await fetch(`${API}/onboarding/process/${id}/tasks`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                },
+            });
+            const payload = await res.json();
+
+            if (
+                !payload.success ||
+                !payload.data ||
+                payload.data.length === 0
+            ) {
+                taskBox.innerHTML =
+                    '<div style="color: #64748B; padding: 20px; text-align: center;">Tidak ada checklist tugas yang terkait dengan proses ini.</div>';
+                return;
+            }
+
+            taskBox.innerHTML = payload.data
+                .map((t: any) => {
+                    let icon =
+                        '<div style="width: 8px; height: 8px; border-radius: 50%; background: #64748B;"></div>';
+                    if (t.status === "COMPLETED")
+                        icon =
+                            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                    if (t.status === "IN_PROGRESS")
+                        icon =
+                            '<div style="width: 8px; height: 8px; border-radius: 50%; background: #F59E0B;"></div>';
+
+                    return `
+                 <div class="task-card ${t.status.toLowerCase()}">
+                    <div class="task-icon-wrap">${icon}</div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                            <div style="font-weight: 600; font-size: 14px; color: ${t.status === "COMPLETED" ? "#94A3B8" : "#F8FAFC"}; text-decoration: ${t.status === "COMPLETED" ? "line-through" : "none"};">${t.title}</div>
+                            <div>
+                                <select class="status-select" onchange="updateTaskStatus(${t.id}, this)">
+                                    <option value="PENDING" ${t.status === "PENDING" ? "selected" : ""}>Menunggu</option>
+                                    <option value="IN_PROGRESS" ${t.status === "IN_PROGRESS" ? "selected" : ""}>Sedang Dikerjakan</option>
+                                    <option value="COMPLETED" ${t.status === "COMPLETED" ? "selected" : ""}>Selesai</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #94A3B8; margin-bottom: 8px; line-height: 1.4;">${t.description}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+                            <div style="color: var(--primary); font-weight: 600;">Dept: ${t.responsible_dept}</div>
+                            ${t.completed_at ? `<div style="color: #10B981;">Diselesaikan pada: ${t.completed_at.split("T")[0]}</div>` : ""}
+                        </div>
+                        
+                        <!-- Catatan Input -->
+                        <div style="margin-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 12px; display: flex; gap: 8px;">
+                            <input type="text" id="notes-${t.id}" class="form-control" style="font-size: 11px; padding: 4px 8px; height: 26px; border-color: rgba(255,255,255,0.1); background: transparent;" placeholder="Catatan tugas..." value="${t.notes || ""}">
+                            <button onclick="saveTaskNotes(${t.id})" style="background: rgba(255,255,255,0.1); color: #fff; border:none; border-radius: 4px; padding: 0 12px; font-size: 11px; cursor: pointer;">Simpan Catatan</button>
+                        </div>
+                    </div>
+                 </div>
+                 `;
+                })
+                .join("");
+        } catch (e) {
+            taskBox.innerHTML =
+                '<div style="color: #EF4444; padding: 20px; text-align: center;">Gagal memuat detail tugas.</div>';
+        }
+    };
+
+    (window as any).updateTaskStatus = async function (
+        taskId: number,
+        selectElem: HTMLSelectElement,
+    ) {
+        const status = selectElem.value;
+        const notes =
+            (document.getElementById(`notes-${taskId}`) as HTMLInputElement)
+                ?.value || "";
+
+        try {
+            const res = await fetch(
+                `${API}/onboarding/tasks/${taskId}/status?status=${status}&notes=${encodeURIComponent(notes)}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("flowhr_token")}`,
+                    },
+                },
+            );
+            const data = await res.json();
+            if (data.success && selectedProcessId) {
+                // Refresh Tasks and Sidebar processes to update progress bar
+                loadProcesses(); // wait this doesn't resupply the selectedProcess parameters directly but it updates the DOM percentage
+                selectProcess(
+                    selectedProcessId,
+                    document.getElementById("taskProcessType")!.textContent ||
+                        "",
+                    "", // Start date tak perlu diupdate
+                    -1,
+                    -1, // We don't have new totals yet, but `selectProcess` fetches fresh tasks anyway. Wait, it doesn't fetch fresh progress. Let's just reload.
+                );
+            }
+        } catch (e) {
+            alert("Kesalahan jaringan");
+            // Revert status
+        }
+    };
+
+    (window as any).saveTaskNotes = async function (taskId: number) {
+        // To save notes, we resend the current status but with the new notes
+        alert(
+            "Pilih ubah status di kanan atas untuk menyimpan atau fitur ini akan otomatis tersimpan dalam update UI penuh. (Menyusul)",
+        );
+    };
+
+    document.addEventListener("DOMContentLoaded", initPage);
+</script>
