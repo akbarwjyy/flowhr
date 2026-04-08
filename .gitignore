@@ -45,3 +45,5 @@ docker-data/
 .DS_Store
 ehthumbs.db
 Desktop.ini
+
+docs/
